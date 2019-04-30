@@ -1,7 +1,6 @@
 package vt100
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -312,13 +311,13 @@ func SetColorNum(colorNum int) {
 }
 
 // Execute the terminal command for setting a given display attribute name, like "Bright" or "Blink"
-func DisplayAttribute(name string) (string, error) {
+func AttributeOrColor(name string) string {
 	if memo == nil {
 		memo = make(map[string]string)
 	}
 	combined := "DA:" + name
 	if val, ok := memo[combined]; ok {
-		return val, nil
+		return val
 	}
 	for _, line := range strings.Split(specVT100, "\n") {
 		trimmed := strings.TrimSpace(line)
@@ -326,24 +325,19 @@ func DisplayAttribute(name string) (string, error) {
 			numString := strings.TrimSpace(trimmed[:len(trimmed)-len(name)])
 			num, err := strconv.Atoi(numString)
 			if err != nil {
-				return "", err
+				return ""
 			}
 			termCommand := ColorNum(num)
 			memo[combined] = termCommand
-			return termCommand, nil
+			return termCommand
 		}
 	}
-	return "", errors.New("No such display attribute: " + name)
+	return ""
 }
 
 // Execute the terminal command for setting a given display attribute name, like "Bright" or "Blink"
-func SetDisplayAttribute(name string) error {
-	termcodes, err := DisplayAttribute(name)
-	if err != nil {
-		return err
-	}
-	fmt.Print(termcodes)
-	return nil
+func SetAttribute(name string) {
+	fmt.Print(AttributeOrColor(name))
 }
 
 // Get the terminal command for setting no colors or other display attributes
