@@ -443,8 +443,3 @@ func Colors() []string {
 	}
 	return colors
 }
-
-// Return text with a bright color applied
-func BrightColor(text, color string) string {
-	return AttributeAndColor("Bright", color) + text + NoColor()
-}
