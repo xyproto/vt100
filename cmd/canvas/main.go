@@ -6,15 +6,18 @@ import (
 )
 
 func main() {
+	vt100.Reset()
+	vt100.Clear()
+	vt100.ShowCursor(false)
+	vt100.SetLineWrap(false)
+
 	c := vt100.NewCanvas()
-	c.Reset()
-	c.Clear()
-	c.SetCursor(false)
-	c.SetLineWrap(false)
-	c.Plot(10, 10, "!")
-	c.PlotC(20, 20, "Blue", "?")
+	c.Plot(10, 10, '!')
+	c.PlotC(20, 20, "Blue", '?')
 	c.Draw()
+
 	time.Sleep(time.Second * 2)
-	c.SetLineWrap(true)
-	c.SetCursor(true)
+
+	vt100.SetLineWrap(true)
+	vt100.ShowCursor(true)
 }

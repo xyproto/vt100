@@ -8,7 +8,7 @@ import (
 type Char struct {
 	fg     string // Foreground color
 	bright bool   // Bright color, or not
-	s      string // The character to draw
+	s      rune   // The character to draw
 	drawn  bool   // Has been drawn to screen yet?
 }
 
@@ -70,19 +70,28 @@ func Left(n uint) {
 	Set("Cursor Backward", map[string]string{"{COUNT}": strconv.Itoa(int(n))})
 }
 
-func (c *Canvas) Home() {
+func Home() {
 	Set("Cursor Home", map[string]string{"{ROW};{COLUMN}": ""})
 }
 
-func (c *Canvas) Reset() {
+func Reset() {
 	Do("Reset Device")
 }
 
-func (c *Canvas) Clear() {
+// Clear screen
+func Clear() {
 	Do("Erase Screen")
 }
 
-func (c *Canvas) SetLineWrap(enable bool) {
+// Clear canvas
+func (c *Canvas) Clear() {
+	for _, ch := range c.chars {
+		ch.s = rune(0)
+		ch.drawn = false
+	}
+}
+
+func SetLineWrap(enable bool) {
 	if enable {
 		Do("Enable Line Wrap")
 	} else {
@@ -90,7 +99,7 @@ func (c *Canvas) SetLineWrap(enable bool) {
 	}
 }
 
-func (c *Canvas) ShowCursor(enable bool) {
+func ShowCursor(enable bool) {
 	// Thanks https://rosettacode.org/wiki/Terminal_control/Hiding_the_cursor#Escape_code
 	if enable {
 		fmt.Print("\033[?25h")
@@ -104,12 +113,12 @@ func (c *Canvas) Draw() {
 	for y := uint(0); y < c.h; y++ {
 		for x := uint(0); x < c.w; x++ {
 			ch := &((*c).chars[y*c.w+x])
-			if !ch.drawn && ch.s != "" {
+			if !ch.drawn && ch.s != rune(0) {
 				SetXY(x, y)
 				if ch.bright {
-					fmt.Print(AttributeAndColor("Bright", ch.fg) + ch.s + NoColor())
+					fmt.Print(AttributeAndColor("Bright", ch.fg) + string(ch.s) + NoColor())
 				} else {
-					fmt.Print(AttributeOrColor(ch.fg) + ch.s + NoColor())
+					fmt.Print(AttributeOrColor(ch.fg) + string(ch.s) + NoColor())
 				}
 				ch.drawn = true
 			}
@@ -126,7 +135,7 @@ func (c *Canvas) Redraw() {
 	c.Draw()
 }
 
-func (c *Canvas) Plot(x, y uint, s string) {
+func (c *Canvas) Plot(x, y uint, s rune) {
 	if x < 0 || y < 0 {
 		return
 	}
@@ -139,7 +148,7 @@ func (c *Canvas) Plot(x, y uint, s string) {
 }
 
 // Plot a bright color
-func (c *Canvas) PlotC(x, y uint, fg, s string) {
+func (c *Canvas) PlotC(x, y uint, fg string, s rune) {
 	if x < 0 || y < 0 {
 		return
 	}
@@ -154,7 +163,7 @@ func (c *Canvas) PlotC(x, y uint, fg, s string) {
 }
 
 // Plot a dark color
-func (c *Canvas) PlotDC(x, y uint, fg, s string) {
+func (c *Canvas) PlotDC(x, y uint, fg string, s rune) {
 	if x < 0 || y < 0 {
 		return
 	}

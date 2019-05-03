@@ -22,61 +22,100 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGWINCH)
 	go func() {
 		for range sigChan {
-			// terminal was resized
+			// Terminal was resized
+
+			// Prepare to resize the canvas
 			draw.Lock()
-			c.Resize()
+
+			// Clear the screen after the resize
+			vt100.Clear()
+
+			// Create a new canvas, with the new size
+			nc := c.Resized()
+			if nc != nil {
+				c.Clear()
+				c.Draw()
+				c = nc
+			}
+			// Clear again, for good measure
+			vt100.Clear()
+			// Redraw the characters
+			c.Redraw()
+			// Done
 			draw.Unlock()
 		}
 	}()
 
-	c.Clear()
-	c.ShowCursor(false)
-	//c.SetLineWrap(false)
+	vt100.Clear()
+	vt100.ShowCursor(false)
+	vt100.SetLineWrap(false)
+
+	oColor := "Yellow"
+	oRune := 'o'
 
 	running := true
 	for running {
 
-		draw.Lock()
-
 		// Draw elements in their new positions
-		c.PlotC(x, y, "Yellow", "o")
+		draw.Lock()
+		c.PlotC(x, y, oColor, oRune)
+		draw.Unlock()
 
 		// Update the canvas
+		draw.Lock()
 		c.Draw()
-
 		draw.Unlock()
 
 		// Wait a bit
-		time.Sleep(time.Millisecond * 20)
+		time.Sleep(time.Millisecond * 15)
 
 		// Change state
 		oldx := x
 		oldy := y
+		arrow := false
 
 		// Handle events
+		draw.Lock()
 		switch vt100.Key() {
-		case 38:
+		case 38: // Up
 			y -= 1
-		case 40:
+			arrow = true
+		case 40: // Down
 			y += 1
-		case 39:
+			arrow = true
+		case 39: // Right
 			x += 1
-		case 37:
+			arrow = true
+		case 37: // Left
 			x -= 1
+			arrow = true
 		case 27, 113: // ESC or q
 			running = false
 			break
+		case 32: // Space
+			if oColor == "Yellow" {
+				oColor = "Red"
+			} else {
+				oColor = "Yellow"
+			}
+		}
+		draw.Unlock()
+
+		if arrow {
+			if oRune == 'o' {
+				oRune = 'O'
+			} else {
+				oRune = 'o'
+			}
 		}
 
-		draw.Lock()
-
 		// Erase elements at their old positions
-		c.Plot(oldx, oldy, " ")
-
+		draw.Lock()
+		c.Plot(oldx, oldy, ' ')
 		draw.Unlock()
 	}
 
-	//c.SetLineWrap(true)
-	c.ShowCursor(true)
-	c.Home()
+	vt100.SetLineWrap(true)
+	vt100.ShowCursor(true)
+	vt100.Home()
 }
