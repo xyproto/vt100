@@ -15,6 +15,6 @@ fmt.Println(vt100.BrightColor("hi", "Blue"))
 
 General info:
 
-* Version: 0.1
+* Version: 0.2.0
 * Licence: MIT
 * Author: Alexander F. Rødseth &lt;xyproto@archlinux.org&gt;
