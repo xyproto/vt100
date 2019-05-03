@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	c := vt100.NewCanvas(80, 25)
+	c := vt100.NewCanvas()
 	c.Reset()
 	c.Clear()
 	c.SetCursor(false)
