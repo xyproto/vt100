@@ -45,9 +45,9 @@ func umin(a, b uint) uint {
 	return b
 }
 
-// Move cursor to the given position
+// Move cursor to the given position (from 0 and up, the terminal code is from 1 and up)
 func SetXY(x, y uint) {
-	Set("Cursor Home", map[string]string{"{ROW}": strconv.Itoa(int(y)), "{COLUMN}": strconv.Itoa(int(x))})
+	Set("Cursor Home", map[string]string{"{ROW}": strconv.Itoa(int(y + 1)), "{COLUMN}": strconv.Itoa(int(x + 1))})
 }
 
 // Move the cursor down

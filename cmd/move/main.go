@@ -10,7 +10,7 @@ import (
 )
 
 type Bob struct {
-	x, y  uint
+	x, y  int
 	color string
 	state rune
 }
@@ -36,12 +36,12 @@ func (b *Bob) ToggleState() {
 }
 
 func (b *Bob) Draw(c *vt100.Canvas) {
-	c.PlotC(b.x, b.y, b.color, b.state)
+	c.PlotC(uint(b.x), uint(b.y), b.color, b.state)
 }
 
 func (b *Bob) Right(c *vt100.Canvas) bool {
 	b.x += 1
-	if b.x >= c.W() {
+	if b.x >= int(c.W()) {
 		b.x -= 1
 		return false
 	}
@@ -66,7 +66,7 @@ func (b *Bob) Up(c *vt100.Canvas) bool {
 
 func (b *Bob) Down(c *vt100.Canvas) bool {
 	b.y += 1
-	if b.y >= c.H() {
+	if b.y >= int(c.H()) {
 		b.y -= 1
 		return false
 	}
@@ -161,7 +161,7 @@ func main() {
 
 			// Erase elements at their old positions
 			draw.Lock()
-			c.Plot(oldx, oldy, ' ')
+			c.Plot(uint(oldx), uint(oldy), ' ')
 			draw.Unlock()
 		}
 	}
