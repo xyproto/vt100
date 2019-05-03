@@ -1,6 +1,9 @@
 cmd/canvas/canvas
 cmd/color/color
 cmd/info/info
+cmd/resize/resize
+cmd/key/key
+cmd/move/move
 *.tmp
 *.bak
 *.swp
