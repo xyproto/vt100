@@ -1,19 +1,23 @@
 # vt100
 
-VT100 Terminal Package
+### VT100 Terminal Package
 
-* Everything is generated from the spec.
-* Uses memoization of generated terminal codes.
-* No external dependencies.
-* Has a Canvas struct that can be used for drawing (see `cmd/canvas` for an example).
+* Supports colors and attributes.
+* Can detect the terminal size.
+* Can get key-preses, including arrow keys.
+* Has a Canvas struct, for drawing to a buffer than only updating the characters that needs to be updated.
 
-Simple use:
+### Simple use
 
 ```go
 fmt.Println(vt100.BrightColor("hi", "Blue"))
 ```
 
-General info:
+### Another example
+
+See `cmd/move` for a more advanced example, where a character can be moved around with the arrow keys.
+
+### General info
 
 * Version: 0.2.0
 * Licence: MIT
