@@ -108,6 +108,14 @@ func ShowCursor(enable bool) {
 	}
 }
 
+func (c *Canvas) W() uint {
+	return c.w
+}
+
+func (c *Canvas) H() uint {
+	return c.h
+}
+
 func (c *Canvas) Draw() {
 	// TODO: Consider using a single for-loop over index instead of 2 (x,y)
 	for y := uint(0); y < c.h; y++ {

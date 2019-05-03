@@ -9,15 +9,81 @@ import (
 	"time"
 )
 
+type Bob struct {
+	x, y  uint
+	color string
+	state rune
+}
+
+func (b *Bob) ToggleColor() {
+	const c1 = "Red"
+	const c2 = "Yellow"
+	if b.color == c1 {
+		b.color = c2
+	} else {
+		b.color = c1
+	}
+}
+
+func (b *Bob) ToggleState() {
+	const up = 'O'
+	const down = 'o'
+	if b.state == up {
+		b.state = down
+	} else {
+		b.state = up
+	}
+}
+
+func (b *Bob) Draw(c *vt100.Canvas) {
+	c.PlotC(b.x, b.y, b.color, b.state)
+}
+
+func (b *Bob) Right(c *vt100.Canvas) bool {
+	b.x += 1
+	if b.x >= c.W() {
+		b.x -= 1
+		return false
+	}
+	return true
+}
+
+func (b *Bob) Left(c *vt100.Canvas) bool {
+	if b.x-1 < 0 {
+		return false
+	}
+	b.x -= 1
+	return true
+}
+
+func (b *Bob) Up(c *vt100.Canvas) bool {
+	if b.y-1 < 0 {
+		return false
+	}
+	b.y -= 1
+	return true
+}
+
+func (b *Bob) Down(c *vt100.Canvas) bool {
+	b.y += 1
+	if b.y >= c.H() {
+		b.y -= 1
+		return false
+	}
+	return true
+}
+
 func main() {
-
-	var draw sync.RWMutex
-
-	x := uint(10)
-	y := uint(10)
 
 	c := vt100.NewCanvas()
 
+	var bob Bob
+	bob.state = 'o'
+	bob.color = "Yellow"
+	bob.x = 10
+	bob.y = 10
+
+	var draw sync.RWMutex
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGWINCH)
 	go func() {
@@ -50,15 +116,12 @@ func main() {
 	vt100.ShowCursor(false)
 	vt100.SetLineWrap(false)
 
-	oColor := "Yellow"
-	oRune := 'o'
-
 	running := true
 	for running {
 
 		// Draw elements in their new positions
 		draw.Lock()
-		c.PlotC(x, y, oColor, oRune)
+		bob.Draw(c)
 		draw.Unlock()
 
 		// Update the canvas
@@ -70,49 +133,37 @@ func main() {
 		time.Sleep(time.Millisecond * 15)
 
 		// Change state
-		oldx := x
-		oldy := y
-		arrow := false
+		oldx := bob.x
+		oldy := bob.y
+		moved := false
 
 		// Handle events
 		draw.Lock()
 		switch vt100.Key() {
 		case 38: // Up
-			y -= 1
-			arrow = true
+			moved = bob.Up(c)
 		case 40: // Down
-			y += 1
-			arrow = true
+			moved = bob.Down(c)
 		case 39: // Right
-			x += 1
-			arrow = true
+			moved = bob.Right(c)
 		case 37: // Left
-			x -= 1
-			arrow = true
+			moved = bob.Left(c)
 		case 27, 113: // ESC or q
 			running = false
 			break
 		case 32: // Space
-			if oColor == "Yellow" {
-				oColor = "Red"
-			} else {
-				oColor = "Yellow"
-			}
+			bob.ToggleColor()
 		}
 		draw.Unlock()
 
-		if arrow {
-			if oRune == 'o' {
-				oRune = 'O'
-			} else {
-				oRune = 'o'
-			}
-		}
+		if moved {
+			bob.ToggleState()
 
-		// Erase elements at their old positions
-		draw.Lock()
-		c.Plot(oldx, oldy, ' ')
-		draw.Unlock()
+			// Erase elements at their old positions
+			draw.Lock()
+			c.Plot(oldx, oldy, ' ')
+			draw.Unlock()
+		}
 	}
 
 	vt100.SetLineWrap(true)
