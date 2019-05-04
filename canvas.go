@@ -10,6 +10,7 @@ type Char struct {
 	bright bool   // Bright color, or not
 	s      rune   // The character to draw
 	drawn  bool   // Has been drawn to screen yet?
+	// Not having a background color, and storing the foreground color as a string is a design choice
 }
 
 type Canvas struct {
@@ -143,6 +144,16 @@ func (c *Canvas) Redraw() {
 	c.Draw()
 }
 
+// At returns the rune at the given coordinates, or rune(0) if empty or out of boundspl
+func (c *Canvas) At(x, y uint) rune {
+	index := y*c.w + x
+	chars := (*c).chars
+	if index < uint(0) || index >= uint(len(chars)) {
+		return rune(0)
+	}
+	return chars[index].s
+}
+
 func (c *Canvas) Plot(x, y uint, s rune) {
 	if x < 0 || y < 0 {
 		return
@@ -190,8 +201,6 @@ func (c *Canvas) Resize() {
 	if err != nil {
 		return
 	}
-	//w++
-	//h++
 	if (w != c.w) || (h != c.h) {
 		// Resize to the new size
 		c.w = w
@@ -208,8 +217,6 @@ func (c *Canvas) Resized() *Canvas {
 		fmt.Println(err)
 		return nil
 	}
-	//w++
-	//h++
 	if (w != c.w) || (h != c.h) {
 		// The terminal was resized!
 		oldc := c
