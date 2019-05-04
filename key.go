@@ -4,16 +4,44 @@ import (
 	"github.com/pkg/term"
 )
 
-// Thanks https://stackoverflow.com/a/32018700/131264
+type RawTerminal term.Term
 
-// Returns either an ascii code, or (if input is an arrow) a Javascript key code.
-func asciiAndKeyCode() (ascii, keyCode int, err error) {
+func NewRawTerminal() *RawTerminal {
 	t, _ := term.Open("/dev/tty")
 	term.RawMode(t)
-	bytes := make([]byte, 3)
+	var r RawTerminal
+	r = RawTerminal(*t)
+	return &r
+}
 
+func (r *RawTerminal) Term() *term.Term {
+	var t term.Term
+	t = term.Term(*r)
+	return &t
+}
+
+func (r *RawTerminal) RawMode() {
+	term.RawMode(r.Term())
+}
+
+func (r *RawTerminal) Restore() {
+	r.Term().Restore()
+}
+
+func (r *RawTerminal) Close() {
+	t := r.Term()
+	t.Restore()
+	t.Close()
+}
+
+// Thanks https://stackoverflow.com/a/32018700/131264
+// Returns either an ascii code, or (if input is an arrow) a Javascript key code.
+func asciiAndKeyCode(r *RawTerminal) (ascii, keyCode int, err error) {
+	bytes := make([]byte, 3)
 	var numRead int
-	numRead, err = t.Read(bytes)
+	r.RawMode()
+	numRead, err = r.Term().Read(bytes)
+	r.Restore()
 	if err != nil {
 		return
 	}
@@ -40,29 +68,62 @@ func asciiAndKeyCode() (ascii, keyCode int, err error) {
 	} else {
 		// Two characters read??
 	}
-	t.Restore()
-	t.Close()
 	return
 }
 
-func ASCII() int {
-	ascii, _, err := asciiAndKeyCode()
+// Returns either an ascii code, or (if input is an arrow) a Javascript key code.
+func asciiAndKeyCodeOnce() (ascii, keyCode int, err error) {
+	t := NewRawTerminal()
+	a, kc, err := asciiAndKeyCode(t)
+	t.Close()
+	return a, kc, err
+}
+
+func (r *RawTerminal) ASCII() int {
+	ascii, _, err := asciiAndKeyCode(r)
 	if err != nil {
 		return 0
 	}
 	return ascii
 }
 
-func KeyCode() int {
-	_, keyCode, err := asciiAndKeyCode()
+func ASCIIOnce() int {
+	ascii, _, err := asciiAndKeyCodeOnce()
+	if err != nil {
+		return 0
+	}
+	return ascii
+}
+
+func (r *RawTerminal) KeyCode() int {
+	_, keyCode, err := asciiAndKeyCode(r)
 	if err != nil {
 		return 0
 	}
 	return keyCode
 }
 
-func Key() int {
-	ascii, keyCode, err := asciiAndKeyCode()
+func KeyCodeOnce() int {
+	_, keyCode, err := asciiAndKeyCodeOnce()
+	if err != nil {
+		return 0
+	}
+	return keyCode
+}
+
+func (r *RawTerminal) Key() int {
+	ascii, keyCode, err := asciiAndKeyCode(r)
+	if err != nil {
+		return 0
+	}
+	if keyCode != 0 {
+		return keyCode
+	}
+	return ascii
+}
+
+func KeyOnce() int {
+	ascii, keyCode, err := asciiAndKeyCodeOnce()
 	if err != nil {
 		return 0
 	}

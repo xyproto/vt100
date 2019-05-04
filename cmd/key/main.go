@@ -7,8 +7,9 @@ import (
 
 func main() {
 	escCount := 0
+	r := vt100.NewRawTerminal()
 	for {
-		key := vt100.Key()
+		key := r.Key()
 		fmt.Println(key)
 		if key == 27 {
 			if escCount == 0 {
@@ -19,7 +20,8 @@ func main() {
 			escCount++
 		}
 		if escCount > 1 {
-			return
+			break
 		}
 	}
+	r.Close()
 }

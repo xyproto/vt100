@@ -76,6 +76,7 @@ func (b *Bob) Down(c *vt100.Canvas) bool {
 func main() {
 
 	c := vt100.NewCanvas()
+	r := vt100.NewRawTerminal()
 
 	var bob Bob
 	bob.state = 'o'
@@ -139,7 +140,7 @@ func main() {
 
 		// Handle events
 		draw.Lock()
-		switch vt100.Key() {
+		switch r.Key() {
 		case 38: // Up
 			moved = bob.Up(c)
 		case 40: // Down
@@ -165,6 +166,7 @@ func main() {
 			draw.Unlock()
 		}
 	}
+	r.Close()
 
 	vt100.SetLineWrap(true)
 	vt100.ShowCursor(true)
