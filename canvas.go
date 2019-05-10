@@ -3,6 +3,7 @@ package vt100
 import (
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type Char struct {
@@ -32,6 +33,23 @@ func NewCanvas() *Canvas {
 	}
 	c.chars = make([]Char, c.w*c.h)
 	return c
+}
+
+// Bytes returns only the characters, as a long string with a newline after each row
+func (c *Canvas) String() string {
+	var sb strings.Builder
+	for y := uint(0); y < c.h; y++ {
+		for x := uint(0); x < c.w; x++ {
+			ch := &((*c).chars[y*c.w+x])
+			if ch.s == rune(0) {
+				sb.WriteRune(' ')
+			} else {
+				sb.WriteRune(ch.s)
+			}
+		}
+		sb.WriteRune('\n')
+	}
+	return sb.String()
 }
 
 // Return the size of the current canvas
