@@ -13,9 +13,25 @@
 
 ### Simple use
 
+Output "hi" in blue:
+
 ```go
 fmt.Println(vt100.BrightColor("hi", "Blue"))
 ```
+
+Erase the current line:
+
+```go
+vt100.Do("Erase Line")
+```
+
+Move the cursor 3 steps up (it's a bit verbose, but it's generated directly from spec, memoized for speed and is easy to wrap in a custom function):
+
+```go
+vt100.Set("Cursor Up", map[string]string{"{COUNT}": "3"})
+```
+
+The full overview of possible commands are at the top of `vt100.go`.
 
 ### Another example
 
