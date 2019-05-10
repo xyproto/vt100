@@ -4,6 +4,7 @@ cmd/info/info
 cmd/resize/resize
 cmd/key/key
 cmd/move/move
+cmd/shooter/shooter
 *.tmp
 *.bak
 *.swp
