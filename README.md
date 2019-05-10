@@ -4,8 +4,9 @@
 
 * Supports colors and attributes.
 * Can detect the terminal size.
-* Can get key-preses, including arrow keys.
+* Can get key-presses, including arrow keys.
 * Has a Canvas struct, for drawing to a buffer than only updating the characters that needs to be updated.
+* Uses the spec directly, but memoizes the commands sent to the terminal, for speed.
 
 ### Simple use
 
