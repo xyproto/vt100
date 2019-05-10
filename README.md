@@ -5,6 +5,7 @@
 ### VT100 Terminal Package
 
 * Supports colors and attributes.
+* Developed for Linux. May work on other systems, but there are no guarantees.
 * Can detect the terminal size.
 * Can get key-presses, including arrow keys.
 * Has a Canvas struct, for drawing to a buffer than only updating the characters that needs to be updated.
