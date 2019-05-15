@@ -57,6 +57,7 @@ func main() {
 
 		// Draw elements in their new positions
 		draw.Lock()
+		vt100.Clear()
 		bob.Draw(c)
 		for _, bullet := range bullets {
 			bullet.Draw(c)
@@ -94,7 +95,7 @@ func main() {
 			break
 		case 32: // Space
 			bob.ToggleColor()
-			bullets = append(bullets, NewBullet(bob.x, bob.y, 1, 0))
+			bullets = append(bullets, NewBullet(bob.x+1, bob.y, 1, 0))
 		case 97: // a
 			// Write the canvas characters to file
 			b := []byte(c.String())

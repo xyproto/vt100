@@ -41,7 +41,6 @@ See `cmd/move` for a more advanced example, where a character can be moved aroun
 
 * Can detect letters, arrow keys and space. F12 and similar keys are not yet supported.
 * Resizing the terminal when using the Canvas struct may cause artifacts, for a brief moment.
-* The `shooter` example is currently broken.
 * Reading a keypress blocks everything.
 
 ### General info
