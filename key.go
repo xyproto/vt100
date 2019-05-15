@@ -6,6 +6,7 @@ import (
 
 type RawTerminal term.Term
 
+// NewRawTerminal opens /dev/tty in raw mode as a term.Term
 func NewRawTerminal() *RawTerminal {
 	t, _ := term.Open("/dev/tty")
 	term.RawMode(t)
@@ -14,20 +15,25 @@ func NewRawTerminal() *RawTerminal {
 	return &r
 }
 
+
+// Term will return the underlying term.Term
 func (r *RawTerminal) Term() *term.Term {
 	var t term.Term
 	t = term.Term(*r)
 	return &t
 }
 
+// RawMode will switch the terminal to raw mode
 func (r *RawTerminal) RawMode() {
 	term.RawMode(r.Term())
 }
 
+// Restore will restore the terminal
 func (r *RawTerminal) Restore() {
 	r.Term().Restore()
 }
 
+// Close will Restore and close the raw terminal
 func (r *RawTerminal) Close() {
 	t := r.Term()
 	t.Restore()
