@@ -37,14 +37,12 @@ The full overview of possible commands are at the top of `vt100.go`.
 
 See `cmd/move` for a more advanced example, where a character can be moved around with the arrow keys.
 
-### Known bugs / limitations
+### Features and limitations.
 
-* Can't detect F12, only letters, arrow keys and space is currently supported.
-* The `shooter` example is broken. Characters are left on the canvas when moving around.
+* Can detect letters, arrow keys and space. F12 and similar keys are not yet supported.
 * Resizing the terminal when using the Canvas struct may cause artifacts, for a brief moment.
+* The `shooter` example is currently broken.
 * Reading a keypress blocks everything.
-
-Other than that, it should be perfectly usable.
 
 ### General info
 
