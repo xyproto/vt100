@@ -2,52 +2,66 @@ package vt100
 
 import (
 	"github.com/pkg/term"
+	"time"
 )
 
-type RawTerminal term.Term
+type TTY term.Term
 
-// NewRawTerminal opens /dev/tty in raw mode as a term.Term
-func NewRawTerminal() *RawTerminal {
-	t, _ := term.Open("/dev/tty")
-	term.RawMode(t)
-	var r RawTerminal
-	r = RawTerminal(*t)
-	return &r
+// NewTTY opens /dev/tty in raw and cbreak mode as a term.Term
+func NewTTY() (*TTY, error) {
+	t, err := term.Open("/dev/tty", term.RawMode, term.CBreakMode, term.ReadTimeout(20*time.Millisecond))
+	if err != nil {
+		return nil, err
+	}
+	tty := TTY(*t)
+	return &tty, nil
 }
 
-
 // Term will return the underlying term.Term
-func (r *RawTerminal) Term() *term.Term {
+func (tty *TTY) Term() *term.Term {
 	var t term.Term
-	t = term.Term(*r)
+	t = term.Term(*tty)
 	return &t
 }
 
 // RawMode will switch the terminal to raw mode
-func (r *RawTerminal) RawMode() {
-	term.RawMode(r.Term())
+func (tty *TTY) RawMode() {
+	term.RawMode(tty.Term())
+}
+
+// NoBlock leaves "cooked" mode and enters "cbreak" mode
+func (tty *TTY) NoBlock() {
+	tty.Term().SetCbreak()
+}
+
+// Timeout sets a timeout for reading a key
+func (tty *TTY) Timeout(d time.Duration) {
+	tty.Term().SetReadTimeout(d)
 }
 
 // Restore will restore the terminal
-func (r *RawTerminal) Restore() {
-	r.Term().Restore()
+func (tty *TTY) Restore() {
+	tty.Term().Restore()
 }
 
 // Close will Restore and close the raw terminal
-func (r *RawTerminal) Close() {
-	t := r.Term()
+func (tty *TTY) Close() {
+	t := tty.Term()
 	t.Restore()
 	t.Close()
 }
 
 // Thanks https://stackoverflow.com/a/32018700/131264
 // Returns either an ascii code, or (if input is an arrow) a Javascript key code.
-func asciiAndKeyCode(r *RawTerminal) (ascii, keyCode int, err error) {
+func asciiAndKeyCode(tty *TTY) (ascii, keyCode int, err error) {
+	takes := 20 * time.Millisecond
 	bytes := make([]byte, 3)
 	var numRead int
-	r.RawMode()
-	numRead, err = r.Term().Read(bytes)
-	r.Restore()
+	tty.RawMode()
+	tty.NoBlock()
+	tty.Timeout(takes)
+	numRead, err = tty.Term().Read(bytes)
+	tty.Restore()
 	if err != nil {
 		return
 	}
@@ -79,14 +93,17 @@ func asciiAndKeyCode(r *RawTerminal) (ascii, keyCode int, err error) {
 
 // Returns either an ascii code, or (if input is an arrow) a Javascript key code.
 func asciiAndKeyCodeOnce() (ascii, keyCode int, err error) {
-	t := NewRawTerminal()
+	t, err := NewTTY()
+	if err != nil {
+		return 0, 0, err
+	}
 	a, kc, err := asciiAndKeyCode(t)
 	t.Close()
 	return a, kc, err
 }
 
-func (r *RawTerminal) ASCII() int {
-	ascii, _, err := asciiAndKeyCode(r)
+func (tty *TTY) ASCII() int {
+	ascii, _, err := asciiAndKeyCode(tty)
 	if err != nil {
 		return 0
 	}
@@ -101,8 +118,8 @@ func ASCIIOnce() int {
 	return ascii
 }
 
-func (r *RawTerminal) KeyCode() int {
-	_, keyCode, err := asciiAndKeyCode(r)
+func (tty *TTY) KeyCode() int {
+	_, keyCode, err := asciiAndKeyCode(tty)
 	if err != nil {
 		return 0
 	}
@@ -117,8 +134,8 @@ func KeyCodeOnce() int {
 	return keyCode
 }
 
-func (r *RawTerminal) Key() int {
-	ascii, keyCode, err := asciiAndKeyCode(r)
+func (tty *TTY) Key() int {
+	ascii, keyCode, err := asciiAndKeyCode(tty)
 	if err != nil {
 		return 0
 	}

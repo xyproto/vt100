@@ -12,7 +12,10 @@ import (
 
 func main() {
 	c := vt100.NewCanvas()
-	r := vt100.NewRawTerminal()
+	tty, err := vt100.NewTTY()
+	if err != nil {
+		panic(err)
+	}
 
 	var (
 		draw    sync.RWMutex
@@ -53,6 +56,8 @@ func main() {
 	vt100.SetLineWrap(false)
 
 	running := true
+	start := time.Now()
+	takes := time.Millisecond * 30
 	for running {
 
 		// Draw elements in their new positions
@@ -70,7 +75,13 @@ func main() {
 		draw.Unlock()
 
 		// Wait a bit
-		time.Sleep(time.Millisecond * 15)
+		end := time.Now()
+		passed := end.Sub(start)
+		start = time.Now()
+		if passed < takes {
+			remaining := passed - takes
+			time.Sleep(remaining)
+		}
 
 		// Change state
 		for _, bullet := range bullets {
@@ -81,7 +92,7 @@ func main() {
 
 		// Handle events
 		draw.Lock()
-		switch r.Key() {
+		switch tty.Key() {
 		case 38: // Up
 			moved = bob.Up(c)
 		case 40: // Down
@@ -122,7 +133,7 @@ func main() {
 		draw.Unlock()
 	}
 
-	r.Close()
+	tty.Close()
 
 	vt100.SetLineWrap(true)
 	vt100.ShowCursor(true)

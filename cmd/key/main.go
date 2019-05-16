@@ -7,7 +7,10 @@ import (
 
 func main() {
 	escCount := 0
-	r := vt100.NewRawTerminal()
+	r, err := vt100.NewTTY()
+	if err != nil {
+		panic(err)
+	}
 	for {
 		key := r.Key()
 		fmt.Println(key)

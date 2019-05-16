@@ -10,18 +10,20 @@ type Bullet struct {
 	vx, vy     int    // velocity
 	state      rune   // looks
 	color      string // foreground color
+	stopped    bool   // is the movement stopped?
 }
 
 func NewBullet(x, y, vx, vy int) *Bullet {
 	return &Bullet{
-		x:     x,
-		y:     y,
-		oldx:  x,
-		oldy:  y,
-		vx:    vx,
-		vy:    vy,
-		state: '×',
-		color: "Blue",
+		x:       x,
+		y:       y,
+		oldx:    x,
+		oldy:    y,
+		vx:      vx,
+		vy:      vy,
+		state:   '×',
+		color:   "Blue",
+		stopped: false,
 	}
 }
 
@@ -51,6 +53,9 @@ func (b *Bullet) Draw(c *vt100.Canvas) {
 
 // Next moves the object to the next position, and returns true if it moved
 func (b *Bullet) Next(c *vt100.Canvas) bool {
+	if b.stopped {
+		return false
+	}
 	if b.x-b.vx < 0 {
 		return false
 	}
@@ -72,10 +77,20 @@ func (b *Bullet) Next(c *vt100.Canvas) bool {
 	return true
 }
 
+func (b *Bullet) Stop() {
+	b.vx = 0
+	b.vy = 0
+	b.stopped = true
+}
+
 func (b *Bullet) HitSomething(c *vt100.Canvas) bool {
 	r := c.At(uint(b.x), uint(b.y))
 	if r != rune(0) {
 		// Hit something
+		b.vx *= -1
+		b.vy *= -1
+		b.Next(c)
+		b.Stop()
 		b.ToggleColor()
 		return true
 	}
