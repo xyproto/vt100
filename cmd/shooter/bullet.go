@@ -28,7 +28,7 @@ func NewBullet(x, y, vx, vy int) *Bullet {
 }
 
 func (b *Bullet) ToggleColor() {
-	const c1 = "Red"
+	const c1 = "Green"
 	const c2 = "Blue"
 	if b.color == c1 {
 		b.color = c2
@@ -54,24 +54,34 @@ func (b *Bullet) Draw(c *vt100.Canvas) {
 // Next moves the object to the next position, and returns true if it moved
 func (b *Bullet) Next(c *vt100.Canvas) bool {
 	if b.stopped {
+		b.ToggleColor()
 		return false
 	}
 	if b.x-b.vx < 0 {
+		b.ToggleColor()
 		return false
 	}
 	if b.y-b.vy < 0 {
+		b.ToggleColor()
 		return false
 	}
 	b.oldx = b.x
 	b.x += b.vx
 	b.oldy = b.y
 	b.y += b.vy
+	if b.HitSomething(c) {
+		b.x = b.oldx
+		b.y = b.oldy
+		return false
+	}
 	if b.x >= int(c.W()) {
 		b.x -= b.vx
+		b.ToggleColor()
 		return false
 	}
 	if b.y >= int(c.H()) {
 		b.y -= b.vy
+		b.ToggleColor()
 		return false
 	}
 	return true
@@ -87,11 +97,7 @@ func (b *Bullet) HitSomething(c *vt100.Canvas) bool {
 	r := c.At(uint(b.x), uint(b.y))
 	if r != rune(0) {
 		// Hit something
-		b.vx *= -1
-		b.vy *= -1
-		b.Next(c)
 		b.Stop()
-		b.ToggleColor()
 		return true
 	}
 	return false
