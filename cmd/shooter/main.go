@@ -98,7 +98,11 @@ func main() {
 		case 32: // Space
 			bob.ToggleColor()
 			// Check if the place to the right is available
-			r := c.At(uint(bob.x+1), uint(bob.y))
+			r, err := c.At(uint(bob.x+1), uint(bob.y))
+			if err != nil {
+				// No free place to the right
+				break
+			}
 			if r == rune(0) {
 				// Fire a new bullet
 				bullets = append(bullets, NewBullet(bob.x+1, bob.y, 1, 0))
@@ -126,7 +130,7 @@ func main() {
 		// Erase all previous positions
 		c.Plot(uint(bob.oldx), uint(bob.oldy), rune(0))
 		for _, bullet := range bullets {
-			c.Plot(uint(bullet.oldx), uint(bullet.oldy), '-')
+			c.Plot(uint(bullet.oldx), uint(bullet.oldy), rune(0))
 		}
 	}
 

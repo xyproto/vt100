@@ -1,6 +1,7 @@
 package vt100
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -160,14 +161,14 @@ func (c *Canvas) Redraw() {
 	c.Draw()
 }
 
-// At returns the rune at the given coordinates, or rune(0) if empty or out of boundspl
-func (c *Canvas) At(x, y uint) rune {
+// At returns the rune at the given coordinates, or an error if out of bounds
+func (c *Canvas) At(x, y uint) (rune, error) {
 	index := y*c.w + x
 	chars := (*c).chars
 	if index < uint(0) || index >= uint(len(chars)) {
-		return rune(0)
+		return rune(0), errors.New("out of bounds")
 	}
-	return chars[index].s
+	return chars[index].s, nil
 }
 
 func (c *Canvas) Plot(x, y uint, s rune) {
@@ -177,9 +178,10 @@ func (c *Canvas) Plot(x, y uint, s rune) {
 	if x >= c.w || y >= c.h {
 		return
 	}
-	ch := &((*c).chars[y*c.w+x])
-	ch.s = s
-	ch.drawn = false
+	index := y*c.w + x
+	chars := (*c).chars
+	chars[index].s = s
+	chars[index].drawn = false
 }
 
 // Plot a bright color
@@ -190,11 +192,12 @@ func (c *Canvas) PlotC(x, y uint, fg string, s rune) {
 	if x >= c.w || y >= c.h {
 		return
 	}
-	ch := &((*c).chars[y*c.w+x])
-	ch.s = s
-	ch.fg = fg
-	ch.bright = true
-	ch.drawn = false
+	index := y*c.w + x
+	chars := (*c).chars
+	chars[index].s = s
+	chars[index].fg = fg
+	chars[index].bright = true
+	chars[index].drawn = false
 }
 
 // Plot a dark color
@@ -205,11 +208,12 @@ func (c *Canvas) PlotDC(x, y uint, fg string, s rune) {
 	if x >= c.w || y >= c.h {
 		return
 	}
-	ch := &((*c).chars[y*c.w+x])
-	ch.s = s
-	ch.fg = fg
-	ch.bright = false
-	ch.drawn = false
+	index := y*c.w + x
+	chars := (*c).chars
+	chars[index].s = s
+	chars[index].fg = fg
+	chars[index].bright = false
+	chars[index].drawn = false
 }
 
 func (c *Canvas) Resize() {

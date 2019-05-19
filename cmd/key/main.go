@@ -15,7 +15,9 @@ func main() {
 	r.SetTimeout(10 * time.Millisecond)
 	for {
 		key := r.Key()
-		fmt.Println(key)
+		if key != 0 {
+			fmt.Println(key)
+		}
 		if key == 27 {
 			if escCount == 0 {
 				fmt.Println("Press ESC again to exit")

@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	fmt.Println("Try resizing the terminal")
 	for {
 		w, h, err := vt100.TermSize()
 		if err != nil {

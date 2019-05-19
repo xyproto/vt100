@@ -94,10 +94,16 @@ func (b *Bullet) Stop() {
 }
 
 func (b *Bullet) HitSomething(c *vt100.Canvas) bool {
-	r := c.At(uint(b.x), uint(b.y))
+	r, err := c.At(uint(b.x), uint(b.y))
+	if err != nil {
+		return false
+	}
 	if r != rune(0) {
 		// Hit something. Check the next-next position too
-		r2 := c.At(uint(b.x+b.vx), uint(b.y+b.vy))
+		r2, err := c.At(uint(b.x+b.vx), uint(b.y+b.vy))
+		if err != nil {
+			return false
+		}
 		if r2 != rune(0) {
 			b.Stop()
 		}
