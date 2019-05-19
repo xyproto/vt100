@@ -9,3 +9,4 @@ cmd/shooter/shooter
 *.bak
 *.swp
 *~
+canvas.txt
