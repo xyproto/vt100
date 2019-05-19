@@ -5,43 +5,46 @@ import (
 	"time"
 )
 
-type TTY term.Term
+var defaultTimeout = 10 * time.Millisecond
+
+type TTY struct {
+	t       *term.Term
+	timeout time.Duration
+}
 
 // NewTTY opens /dev/tty in raw and cbreak mode as a term.Term
 func NewTTY() (*TTY, error) {
-	t, err := term.Open("/dev/tty", term.RawMode, term.CBreakMode, term.ReadTimeout(20*time.Millisecond))
+	t, err := term.Open("/dev/tty", term.RawMode, term.CBreakMode, term.ReadTimeout(defaultTimeout))
 	if err != nil {
 		return nil, err
 	}
-	tty := TTY(*t)
-	return &tty, nil
+	return &TTY{t, defaultTimeout}, nil
 }
 
 // Term will return the underlying term.Term
 func (tty *TTY) Term() *term.Term {
-	var t term.Term
-	t = term.Term(*tty)
-	return &t
+	return tty.t
 }
 
 // RawMode will switch the terminal to raw mode
 func (tty *TTY) RawMode() {
-	term.RawMode(tty.Term())
+	term.RawMode(tty.t)
 }
 
 // NoBlock leaves "cooked" mode and enters "cbreak" mode
 func (tty *TTY) NoBlock() {
-	tty.Term().SetCbreak()
+	tty.t.SetCbreak()
 }
 
-// Timeout sets a timeout for reading a key
-func (tty *TTY) Timeout(d time.Duration) {
-	tty.Term().SetReadTimeout(d)
+// SetTimeout sets a timeout for reading a key
+func (tty *TTY) SetTimeout(d time.Duration) {
+	tty.timeout = d
+	tty.t.SetReadTimeout(tty.timeout)
 }
 
 // Restore will restore the terminal
 func (tty *TTY) Restore() {
-	tty.Term().Restore()
+	tty.t.Restore()
 }
 
 // Close will Restore and close the raw terminal
@@ -54,14 +57,14 @@ func (tty *TTY) Close() {
 // Thanks https://stackoverflow.com/a/32018700/131264
 // Returns either an ascii code, or (if input is an arrow) a Javascript key code.
 func asciiAndKeyCode(tty *TTY) (ascii, keyCode int, err error) {
-	takes := 20 * time.Millisecond
 	bytes := make([]byte, 3)
 	var numRead int
 	tty.RawMode()
 	tty.NoBlock()
-	tty.Timeout(takes)
-	numRead, err = tty.Term().Read(bytes)
+	tty.SetTimeout(tty.timeout)
+	numRead, err = tty.t.Read(bytes)
 	tty.Restore()
+	tty.t.Flush()
 	if err != nil {
 		return
 	}
@@ -134,14 +137,28 @@ func KeyCodeOnce() int {
 	return keyCode
 }
 
+var lastKey int
+
+// Return the keyCode or ascii, but ignore repeated keys
 func (tty *TTY) Key() int {
 	ascii, keyCode, err := asciiAndKeyCode(tty)
 	if err != nil {
+		lastKey = 0
 		return 0
 	}
 	if keyCode != 0 {
+		if keyCode == lastKey {
+			lastKey = 0
+			return 0
+		}
+		lastKey = keyCode
 		return keyCode
 	}
+	if ascii == lastKey {
+		lastKey = 0
+		return 0
+	}
+	lastKey = ascii
 	return ascii
 }
 

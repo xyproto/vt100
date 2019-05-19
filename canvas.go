@@ -24,10 +24,8 @@ func NewCanvas() *Canvas {
 	var err error
 	c := &Canvas{}
 	c.w, c.h, err = TermSize()
-	// TermSize is 1 too small for the buffer
-	//c.w++
-	//c.h++
 	if err != nil {
+		// Use 80x25 if the size can't be detected
 		c.w = 80
 		c.h = 25
 	}

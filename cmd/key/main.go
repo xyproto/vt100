@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/xyproto/vt100"
+	"time"
 )
 
 func main() {
@@ -11,6 +12,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	r.SetTimeout(10 * time.Millisecond)
 	for {
 		key := r.Key()
 		fmt.Println(key)

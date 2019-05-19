@@ -37,11 +37,11 @@ The full overview of possible commands are at the top of `vt100.go`.
 
 See `cmd/move` for a more advanced example, where a character can be moved around with the arrow keys.
 
-### Features and limitations.
+### Features and limitations
 
-* Can detect letters, arrow keys and space. F12 and similar keys are not yet supported.
+* Can detect letters, arrow keys and space. F12 and similar keys are not supported (they are supported by vt220).
 * Resizing the terminal when using the Canvas struct may cause artifacts, for a brief moment.
-* Reading a keypress blocks everything.
+* There is a bug with how characters are placed and/or read from the Canvas struct.
 
 ### General info
 

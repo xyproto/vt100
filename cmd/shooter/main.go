@@ -53,7 +53,7 @@ func main() {
 
 	vt100.Clear()
 	vt100.ShowCursor(false)
-	vt100.SetLineWrap(false)
+	//vt100.SetLineWrap(false)
 
 	running := true
 	start := time.Now()
@@ -61,18 +61,14 @@ func main() {
 	for running {
 
 		// Draw elements in their new positions
-		draw.Lock()
 		vt100.Clear()
-		bob.Draw(c)
 		for _, bullet := range bullets {
 			bullet.Draw(c)
 		}
-		draw.Unlock()
+		bob.Draw(c)
 
 		// Update the canvas
-		draw.Lock()
 		c.Draw()
-		draw.Unlock()
 
 		// Wait a bit
 		end := time.Now()
@@ -83,15 +79,10 @@ func main() {
 			time.Sleep(remaining)
 		}
 
-		// Change state
-		for _, bullet := range bullets {
-			bullet.Next(c)
-		}
 		// Has the player moved?
 		moved := false
 
 		// Handle events
-		draw.Lock()
 		switch tty.Key() {
 		case 38: // Up
 			moved = bob.Up(c)
@@ -106,7 +97,12 @@ func main() {
 			break
 		case 32: // Space
 			bob.ToggleColor()
-			bullets = append(bullets, NewBullet(bob.x+1, bob.y, 1, 0))
+			// Check if the place to the right is available
+			r := c.At(uint(bob.x+1), uint(bob.y))
+			if r == rune(0) {
+				// Fire a new bullet
+				bullets = append(bullets, NewBullet(bob.x+1, bob.y, 1, 0))
+			}
 		case 97: // a
 			// Write the canvas characters to file
 			b := []byte(c.String())
@@ -117,20 +113,21 @@ func main() {
 				break
 			}
 		}
+
+		// Change state
+		for _, bullet := range bullets {
+			bullet.Next(c)
+		}
+
 		if moved {
 			bob.ToggleState()
 		}
-		draw.Unlock()
 
 		// Erase all previous positions
-		draw.Lock()
-		if moved {
-			c.Plot(uint(bob.oldx), uint(bob.oldy), rune(0))
-		}
+		c.Plot(uint(bob.oldx), uint(bob.oldy), rune(0))
 		for _, bullet := range bullets {
-			c.Plot(uint(bullet.oldx), uint(bullet.oldy), rune(0))
+			c.Plot(uint(bullet.oldx), uint(bullet.oldy), '-')
 		}
-		draw.Unlock()
 	}
 
 	tty.Close()
