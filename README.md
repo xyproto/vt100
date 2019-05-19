@@ -41,7 +41,6 @@ See `cmd/move` for a more advanced example, where a character can be moved aroun
 
 * Can detect letters, arrow keys and space. F12 and similar keys are not supported (they are supported by vt220).
 * Resizing the terminal when using the Canvas struct may cause artifacts, for a brief moment.
-* There is a bug with how characters are placed and/or read from the Canvas struct.
 
 ### General info
 
