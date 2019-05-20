@@ -53,13 +53,15 @@ func main() {
 
 	vt100.Clear()
 	vt100.ShowCursor(false)
-	//vt100.SetLineWrap(false)
+	vt100.SetLineWrap(false)
+
+	// The loop time that is aimed for
+	loopDuration := time.Millisecond * 20
+	start := time.Now()
 
 	running := true
-	start := time.Now()
-	takes := time.Millisecond * 30
-	for running {
 
+	for running {
 		// Draw elements in their new positions
 		vt100.Clear()
 		for _, bullet := range bullets {
@@ -70,14 +72,17 @@ func main() {
 		// Update the canvas
 		c.Draw()
 
+		// Don't output keypress terminal codes on the screen
+		tty.NoBlock()
+
 		// Wait a bit
 		end := time.Now()
 		passed := end.Sub(start)
-		start = time.Now()
-		if passed < takes {
-			remaining := passed - takes
+		if passed < loopDuration {
+			remaining := loopDuration - passed
 			time.Sleep(remaining)
 		}
+		start = time.Now()
 
 		// Has the player moved?
 		moved := false
