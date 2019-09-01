@@ -139,7 +139,7 @@ func (c *Canvas) Draw() {
 	for y := uint(0); y < c.h; y++ {
 		for x := uint(0); x < c.w; x++ {
 			ch := &((*c).chars[y*c.w+x])
-			if !ch.drawn && ch.s != rune(0) {
+			if !ch.drawn {
 				SetXY(x, y)
 				if ch.bright {
 					fmt.Print(AttributeAndColor("Bright", ch.fg) + string(ch.s) + NoColor())
