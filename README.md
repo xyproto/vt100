@@ -45,6 +45,6 @@ See `cmd/move` for a more advanced example, where a character can be moved aroun
 
 ### General info
 
-* Version: 0.2.0
+* Version: 0.2.1
 * Licence: MIT
 * Author: Alexander F. Rødseth &lt;xyproto@archlinux.org&gt;
