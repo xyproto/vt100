@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 type Char struct {
@@ -19,6 +20,7 @@ type Canvas struct {
 	w     uint
 	h     uint
 	chars []Char
+	mut   *sync.RWMutex
 }
 
 func NewCanvas() *Canvas {
@@ -31,6 +33,7 @@ func NewCanvas() *Canvas {
 		c.h = 25
 	}
 	c.chars = make([]Char, c.w*c.h)
+	c.mut = &sync.RWMutex{}
 	return c
 }
 
@@ -38,6 +41,7 @@ func NewCanvas() *Canvas {
 func (c *Canvas) String() string {
 	var sb strings.Builder
 	for y := uint(0); y < c.h; y++ {
+		c.mut.RLock()
 		for x := uint(0); x < c.w; x++ {
 			ch := &((*c).chars[y*c.w+x])
 			if ch.s == rune(0) {
@@ -46,6 +50,7 @@ func (c *Canvas) String() string {
 				sb.WriteRune(ch.s)
 			}
 		}
+		c.mut.RUnlock()
 		sb.WriteRune('\n')
 	}
 	return sb.String()
@@ -103,10 +108,12 @@ func Clear() {
 
 // Clear canvas
 func (c *Canvas) Clear() {
+	c.mut.Lock()
 	for _, ch := range c.chars {
 		ch.s = rune(0)
 		ch.drawn = false
 	}
+	c.mut.Unlock()
 }
 
 func SetLineWrap(enable bool) {
@@ -138,15 +145,24 @@ func (c *Canvas) Draw() {
 	// TODO: Consider using a single for-loop over index instead of 2 (x,y)
 	for y := uint(0); y < c.h; y++ {
 		for x := uint(0); x < c.w; x++ {
+			c.mut.RLock()
 			ch := &((*c).chars[y*c.w+x])
 			if !ch.drawn {
+				c.mut.RUnlock()
 				SetXY(x, y)
+				c.mut.RLock()
 				if ch.bright {
+					c.mut.RUnlock()
 					fmt.Print(AttributeAndColor("Bright", ch.fg) + string(ch.s) + NoColor())
 				} else {
+					c.mut.RUnlock()
 					fmt.Print(AttributeOrColor(ch.fg) + string(ch.s) + NoColor())
 				}
+				c.mut.Lock()
 				ch.drawn = true
+				c.mut.Unlock()
+			} else {
+				c.mut.RUnlock()
 			}
 		}
 	}
@@ -155,15 +171,19 @@ func (c *Canvas) Draw() {
 
 func (c *Canvas) Redraw() {
 	// TODO: Consider using a single for-loop instead of 1 (range) + 2 (x,y)
+	c.mut.Lock()
 	for _, ch := range c.chars {
 		ch.drawn = false
 	}
+	c.mut.Unlock()
 	c.Draw()
 }
 
 // At returns the rune at the given coordinates, or an error if out of bounds
 func (c *Canvas) At(x, y uint) (rune, error) {
 	index := y*c.w + x
+	c.mut.RLock()
+	defer c.mut.RUnlock()
 	chars := (*c).chars
 	if index < uint(0) || index >= uint(len(chars)) {
 		return rune(0), errors.New("out of bounds")
@@ -179,9 +199,11 @@ func (c *Canvas) Plot(x, y uint, s rune) {
 		return
 	}
 	index := y*c.w + x
+	c.mut.Lock()
 	chars := (*c).chars
 	chars[index].s = s
 	chars[index].drawn = false
+	c.mut.Unlock()
 }
 
 // Plot a bright color
@@ -193,11 +215,13 @@ func (c *Canvas) PlotC(x, y uint, fg string, s rune) {
 		return
 	}
 	index := y*c.w + x
+	c.mut.Lock()
 	chars := (*c).chars
 	chars[index].s = s
 	chars[index].fg = fg
 	chars[index].bright = true
 	chars[index].drawn = false
+	c.mut.Unlock()
 }
 
 // Plot a dark color
@@ -209,11 +233,13 @@ func (c *Canvas) PlotDC(x, y uint, fg string, s rune) {
 		return
 	}
 	index := y*c.w + x
+	c.mut.Lock()
 	chars := (*c).chars
 	chars[index].s = s
 	chars[index].fg = fg
 	chars[index].bright = false
 	chars[index].drawn = false
+	c.mut.Unlock()
 }
 
 func (c *Canvas) Resize() {
@@ -221,12 +247,15 @@ func (c *Canvas) Resize() {
 	if err != nil {
 		return
 	}
+	c.mut.Lock()
 	if (w != c.w) || (h != c.h) {
 		// Resize to the new size
 		c.w = w
 		c.h = h
 		c.chars = make([]Char, w*h)
+		c.mut = &sync.RWMutex{}
 	}
+	c.mut.Unlock()
 }
 
 // Check if the canvas was resized, and adjust values accordingly.
@@ -245,6 +274,12 @@ func (c *Canvas) Resized() *Canvas {
 		nc.w = w
 		nc.h = h
 		nc.chars = make([]Char, w*h)
+		nc.mut = &sync.RWMutex{}
+
+		nc.mut.Lock()
+		c.mut.Lock()
+		defer c.mut.Unlock()
+		defer nc.mut.Unlock()
 	OUT:
 		// Plot in the old characters
 		for y := uint(0); y < umin(oldc.h, h); y++ {

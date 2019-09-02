@@ -91,3 +91,8 @@ func (b *Bob) Down(c *vt100.Canvas) bool {
 	b.oldy = oldy
 	return true
 }
+
+// Terminal was resized
+func (b *Bob) Resize() {
+	b.color = "Magenta"
+}

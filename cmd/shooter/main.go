@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 )
@@ -18,7 +17,6 @@ func main() {
 	}
 
 	var (
-		draw    sync.RWMutex
 		bob     = NewBob()
 		sigChan = make(chan os.Signal, 1)
 		bullets = make([]*Bullet, 0)
@@ -27,11 +25,6 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGWINCH)
 	go func() {
 		for range sigChan {
-			// Terminal was resized
-
-			// Prepare to resize the canvas
-			draw.Lock()
-
 			// Clear the screen after the resize
 			vt100.Clear()
 
@@ -46,8 +39,13 @@ func main() {
 			vt100.Clear()
 			// Redraw the characters
 			c.Redraw()
-			// Done
-			draw.Unlock()
+
+			// Inform all elements that the terminal was resized
+			// TODO: Use a slice of interfaces that can contain all elements
+			for _, bullet := range bullets {
+				bullet.Resize()
+			}
+			bob.Resize()
 		}
 	}()
 

@@ -111,3 +111,8 @@ func (b *Bullet) HitSomething(c *vt100.Canvas) bool {
 	}
 	return false
 }
+
+// Terminal was resized
+func (b *Bullet) Resize() {
+	b.stopped = false
+}

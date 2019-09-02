@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // From http://www.termsys.demon.co.uk/vtansi.htm
@@ -235,7 +236,10 @@ Set Attribute Mode	<ESC>[{attr1};...;{attrn}m
 `
 
 // memoization
-var memo map[string]string
+var (
+	memo    = make(map[string]string)
+	memoMut = &sync.RWMutex{}
+)
 
 func flatten(m map[string]string) string {
 	// TODO: Sort the keys first
@@ -256,12 +260,12 @@ func get(specVT100, command string, replacemap map[string]string, dummy bool) st
 	if dummy {
 		combined += "D"
 	}
-	if memo == nil {
-		memo = make(map[string]string)
-	}
+	memoMut.RLock()
 	if val, ok := memo[combined]; ok {
+		memoMut.RUnlock()
 		return val
 	}
+	memoMut.RUnlock()
 	for _, line := range strings.Split(specVT100, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, command) {
@@ -271,12 +275,16 @@ func get(specVT100, command string, replacemap map[string]string, dummy bool) st
 			}
 			if dummy {
 				// Return the terminal command, with "<ESC>" instead of the actual ESC character
+				memoMut.Lock()
 				memo[combined] = termCommand
+				memoMut.Unlock()
 				return termCommand
 			}
 			// Return the terminal command
 			termCommand = strings.Replace(termCommand, "<ESC>", "\033", -1)
+			memoMut.Lock()
 			memo[combined] = termCommand
+			memoMut.Unlock()
 			return termCommand
 		}
 	}
@@ -312,13 +320,13 @@ func SetColorNum(colorNum int) {
 
 // Execute the terminal command for setting a given display attribute name, like "Bright" or "Blink"
 func AttributeOrColor(name string) string {
-	if memo == nil {
-		memo = make(map[string]string)
-	}
 	combined := "DA:" + name
+	memoMut.RLock()
 	if val, ok := memo[combined]; ok {
+		memoMut.RUnlock()
 		return val
 	}
+	memoMut.RUnlock()
 	for _, line := range strings.Split(specVT100, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasSuffix(trimmed, name) {
@@ -328,7 +336,9 @@ func AttributeOrColor(name string) string {
 				return ""
 			}
 			termCommand := ColorNum(num)
+			memoMut.Lock()
 			memo[combined] = termCommand
+			memoMut.Unlock()
 			return termCommand
 		}
 	}
@@ -352,13 +362,13 @@ func SetNoColor() {
 
 // Get the terminal command for setting a terminal attribute and a color
 func AttributeAndColor(attr, name string) string {
-	if memo == nil {
-		memo = make(map[string]string)
-	}
 	combined := "AAC:" + attr + name
+	memoMut.RLock()
 	if val, ok := memo[combined]; ok {
+		memoMut.RUnlock()
 		return val
 	}
+	memoMut.RUnlock()
 	attribute := ""
 	for _, line := range strings.Split(specVT100, "\n") {
 		trimmed := strings.TrimSpace(line)
@@ -372,7 +382,9 @@ func AttributeAndColor(attr, name string) string {
 		if strings.HasSuffix(trimmed, name) {
 			numString := strings.TrimSpace(trimmed[:len(trimmed)-len(name)])
 			termCommand := get(specVT100, "Set Attribute Mode", map[string]string{"{attr1};...;{attrn}": attribute + numString}, false)
+			memoMut.Lock()
 			memo[combined] = termCommand
+			memoMut.Unlock()
 			return termCommand
 		}
 	}
