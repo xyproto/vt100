@@ -17,7 +17,7 @@ A physical VT100 terminal. Photo by [Jason Scott](https://www.flickr.com/photos/
 
 ![shooter example](img/shooter.gif)
 
-Screen recording from the `shooter` example.
+Screen recording of the `shooter` example, which uses VT100 terminal codes.
 
 ### The `vt100` Go Module
 
