@@ -1,9 +1,6 @@
-# vt100
+# VT100
 
 [![Build Status](https://travis-ci.org/xyproto/vt100.svg?branch=master)](https://travis-ci.org/xyproto/vt100) [![GoDoc](https://godoc.org/github.com/xyproto/vt100?status.svg)](https://godoc.org/github.com/xyproto/vt100) [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat)](https://raw.githubusercontent.com/xyproto/vt100/master/LICENSE) [![Go Report Card](https://goreportcard.com/badge/github.com/xyproto/vt100)](https://goreportcard.com/report/github.com/xyproto/vt100)
-
-
-### VT100 Terminal Package
 
 ||
 | --- |
@@ -15,6 +12,8 @@
 * Can get key-presses, including arrow keys.
 * Has a Canvas struct, for drawing only the updated characters to the terminal.
 * Uses the spec directly, but memoizes the commands sent to the terminal, for speed.
+
+### VT100 Terminal Package
 
 ### Simple use
 
