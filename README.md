@@ -5,18 +5,16 @@
 
 ### VT100 Terminal Package
 
+||
+| --- |
+| ![VT100](https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/DEC_VT100_terminal.jpg/300px-DEC_VT100_terminal.jpg) Photo by [Jason Scott](https://www.flickr.com/photos/54568729@N00/9636183501), [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) |
+
 * Supports colors and attributes.
 * Developed for Linux. May work on other systems, but there are no guarantees.
 * Can detect the terminal size.
 * Can get key-presses, including arrow keys.
 * Has a Canvas struct, for drawing only the updated characters to the terminal.
 * Uses the spec directly, but memoizes the commands sent to the terminal, for speed.
-
-### The VT100 Terminal
-
-|||
-| --- | --- |
-| ![VT100](https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/DEC_VT100_terminal.jpg/300px-DEC_VT100_terminal.jpg) | Photo by [Jason Scott](https://www.flickr.com/photos/54568729@N00/9636183501), [CC BY 2.0](https://creativecommons.org/licenses/by/2.0) |
 
 ### Simple use
 
