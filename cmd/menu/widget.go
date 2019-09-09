@@ -98,9 +98,10 @@ func (m *MenuWidget) Select() {
 
 func (m *MenuWidget) Up(c *vt100.Canvas) bool {
 	m.oldy = m.y
-	m.y--
-	if m.y < 0 {
+	if m.y <= 0 {
 		m.y = m.h - 1
+	} else {
+		m.y--
 	}
 	return true
 }
@@ -126,5 +127,15 @@ func (m *MenuWidget) SelectIndex(n uint) bool {
 	}
 	m.oldy = m.y
 	m.y = n
+	return true
+}
+
+func (m *MenuWidget) SelectFirst() bool {
+	return m.SelectIndex(0)
+}
+
+func (m *MenuWidget) SelectLast() bool {
+	m.oldy = m.y
+	m.y = m.h - 1
 	return true
 }
