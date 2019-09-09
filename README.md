@@ -19,6 +19,10 @@ A physical VT100 terminal. Photo by [Jason Scott](https://www.flickr.com/photos/
 
 Screen recording of the [`shooter`](cmd/shooter) example, which uses VT100 terminal codes.
 
+![menu example](img/menu.gif)
+
+Screen recording of the [`menu`](cmd/menu) example, which demonstrates a working menu.
+
 ### The `vt100` Go Module
 
 ### Simple use
