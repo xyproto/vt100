@@ -15,13 +15,17 @@
 
 A physical VT100 terminal. Photo by [Jason Scott](https://www.flickr.com/photos/54568729@N00/9636183501), [CC BY 2.0](https://creativecommons.org/licenses/by/2.0)
 
+---
+
 ![menu example](img/menu.gif)
 
-Screen recording of the [`menu`](cmd/menu) example, which demonstrates a working menu.
+Screen recording of the [`menu`](cmd/menu) example, which uses VT100 terminal codes and demonstrates a working menu.
+
+---
 
 ![shooter example](img/shooter.gif)
 
-Screen recording of the [`shooter`](cmd/shooter) example, which uses VT100 terminal codes.
+Screen recording of the [`shooter`](cmd/shooter) example, where you can control a small character with the arrow keys and shoot with `space`.
 
 ### The `vt100` Go Module
 
