@@ -11,9 +11,9 @@
 
 ### Images
 
-![VT100 terminal](https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/DEC_VT100_terminal.jpg/300px-DEC_VT100_terminal.jpg)
+![shooter example](img/shooter.gif)
 
-A physical VT100 terminal. Photo by [Jason Scott](https://www.flickr.com/photos/54568729@N00/9636183501), [CC BY 2.0](https://creativecommons.org/licenses/by/2.0)
+Screen recording of the [`shooter`](cmd/shooter) example, where you can control a small character with the arrow keys and shoot with `space`.
 
 ---
 
@@ -23,9 +23,9 @@ Screen recording of the [`menu`](cmd/menu) example, which uses VT100 terminal co
 
 ---
 
-![shooter example](img/shooter.gif)
+![VT100 terminal](https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/DEC_VT100_terminal.jpg/300px-DEC_VT100_terminal.jpg)
 
-Screen recording of the [`shooter`](cmd/shooter) example, where you can control a small character with the arrow keys and shoot with `space`.
+A physical VT100 terminal. Photo by [Jason Scott](https://www.flickr.com/photos/54568729@N00/9636183501), [CC BY 2.0](https://creativecommons.org/licenses/by/2.0)
 
 ### The `vt100` Go Module
 
