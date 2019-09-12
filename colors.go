@@ -3,12 +3,13 @@ package vt100
 import (
 	"fmt"
 	"image/color"
+	"strconv"
 	"strings"
 )
 
 // Color aliases, for ease of use, not for performance
 
-type AttributeColor []string
+type AttributeColor []int
 
 var (
 	// Non-color attributes
@@ -112,8 +113,57 @@ var (
 	}
 )
 
+func s2i(attribute string) int {
+	switch attribute {
+	case "Reset all attributes", "Reset", "reset", "reset all attributes":
+		return 0
+	case "Bright", "bright":
+		return 1
+	case "Dim", "dim":
+		return 2
+	case "Underscore", "underscore":
+		return 4
+	case "Blink", "blink":
+		return 5
+	case "Reverse", "reverse":
+		return 7
+	case "Hidden", "hidden":
+		return 8
+	case "Black", "black":
+		return 30
+	case "Red", "red":
+		return 31
+	case "Green", "green":
+		return 32
+	case "Yellow", "yellow":
+		return 33
+	case "Blue", "blue":
+		return 34
+	case "Magenta", "magenta":
+		return 35
+	case "Cyan", "cyan":
+		return 36
+	case "White", "white":
+		return 37
+	}
+	num, err := strconv.Atoi(attribute)
+	if err != nil {
+		return -1
+	}
+	return num
+}
+
+// For each element in a slice, apply the function f
+func mapSI(sl []string, f func(string) int) []int {
+	result := make([]int, len(sl))
+	for i, s := range sl {
+		result[i] = f(s)
+	}
+	return result
+}
+
 func NewAttributeColor(attributes ...string) AttributeColor {
-	return AttributeColor(attributes)
+	return AttributeColor(mapSI(attributes, s2i))
 }
 
 // For each element in a slice, apply the function f
@@ -125,9 +175,18 @@ func mapS(sl []string, f func(string) string) []string {
 	return result
 }
 
+// For each element in a slice, apply the function f
+func mapIS(il []int, f func(int) string) []string {
+	result := make([]string, len(il))
+	for i, s := range il {
+		result[i] = f(s)
+	}
+	return result
+}
+
 // Get the terminal codes for setting the attributes for colors, background colors, brightness etc
 func (ac AttributeColor) GetStart() string {
-	attributeString := strings.Join(mapS(ac, AttributeNumber), ";")
+	attributeString := strings.Join(mapIS(ac, strconv.Itoa), ";")
 	// Replace '{attr1};...;{attrn}' with the generated attribute string and return
 	return get(specVT100, "Set Attribute Mode", map[string]string{"{attr1};...;{attrn}": attributeString}, false)
 }
@@ -144,14 +203,14 @@ func (ac AttributeColor) Output(text string) {
 
 func (ac AttributeColor) Combine(other AttributeColor) AttributeColor {
 	// Set an initial size of the map, where keys are attributes and values are bool
-	amap := make(map[string]bool, len(ac)+len(other))
+	amap := make(map[int]bool, len(ac)+len(other))
 	for _, attr := range ac {
 		amap[attr] = true
 	}
 	for _, attr := range other {
 		amap[attr] = true
 	}
-	newAttributes := make([]string, len(amap))
+	newAttributes := make([]int, len(amap))
 	index := 0
 	for attr, _ := range amap {
 		newAttributes[index] = attr
@@ -166,7 +225,7 @@ func (ac AttributeColor) Bright() AttributeColor {
 	//newAttributes := make([]string, lenAttr + 1)
 	//newAttributes[lenAttr] = "Bright"
 	//return &AttributeColor{newAttributes}
-	return AttributeColor(append(ac, "Bright"))
+	return AttributeColor(append(ac, s2i("Bright")))
 }
 
 // Output a string at x, y with the given colors
