@@ -454,3 +454,8 @@ func Colors() []string {
 func BrightColor(text, color string) string {
 	return AttributeAndColor("Bright", color) + text + NoColor()
 }
+
+// Return text with a dark color applied
+func DarkColor(text, color string) string {
+	return AttributeOrColor(color) + text + NoColor()
+}
