@@ -123,6 +123,8 @@ func main() {
 	running := true
 	for running {
 
+		vt100.Clear()
+
 		// Draw elements in their new positions
 		draw.Lock()
 		bob.Draw(c)
