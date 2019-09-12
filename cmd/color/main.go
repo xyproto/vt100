@@ -14,7 +14,7 @@ func main() {
 
 	vt100.LightYellow.Output("jk")
 
-	blue := vt100.LightBlue.Get
+	blue := vt100.BackgroundBlue.Get
 	green := vt100.LightGreen.Get
 
 	fmt.Printf("%s: %s\n", blue("status"), green("good"))
