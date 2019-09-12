@@ -29,7 +29,28 @@ var (
 	White        = &AttributeColor{"Bright", "White"}
 
 	Pink = LightMagenta
-	Gray = DarkGray
+	Gray = LightGray
+
+	BackgroundBlack     = &AttributeColor{"Dark", "40"}
+	BackgroundRed       = &AttributeColor{"Dark", "41"}
+	BackgroundGreen     = &AttributeColor{"Dark", "42"}
+	BackgroundYellow    = &AttributeColor{"Dark", "43"}
+	BackgroundBlue      = &AttributeColor{"Dark", "44"}
+	BackgroundMagenta   = &AttributeColor{"Dark", "45"}
+	BackgroundCyan      = &AttributeColor{"Dark", "46"}
+	BackgroundLightGray = &AttributeColor{"Dark", "47"}
+
+	BackgroundDarkGray     = &AttributeColor{"Bright", "40"}
+	BackgroundLightRed     = &AttributeColor{"Bright", "41"}
+	BackgroundLightGreen   = &AttributeColor{"Bright", "42"}
+	BackgroundLightYellow  = &AttributeColor{"Bright", "43"}
+	BackgroundLightBlue    = &AttributeColor{"Bright", "44"}
+	BackgroundLightMagenta = &AttributeColor{"Bright", "45"}
+	BackgroundLightCyan    = &AttributeColor{"Bright", "46"}
+	BackgroundWhite        = &AttributeColor{"Bright", "47"}
+
+	BackgroundPink = BackgroundLightMagenta
+	BackgroundGray = BackgroundLightGray
 )
 
 func (ac *AttributeColor) Get(text string) string {
