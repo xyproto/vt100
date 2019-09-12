@@ -9,10 +9,10 @@ import (
 )
 
 type Char struct {
-	fg     string // Foreground color
-	bright bool   // Bright color, or not
-	s      rune   // The character to draw
-	drawn  bool   // Has been drawn to screen yet?
+	fg    AttributeColor // Foreground color
+	bg    AttributeColor // Background color
+	s     rune           // The character to draw
+	drawn bool           // Has been drawn to screen yet?
 	// Not having a background color, and storing the foreground color as a string is a design choice
 }
 
@@ -35,6 +35,24 @@ func NewCanvas() *Canvas {
 	c.chars = make([]Char, c.w*c.h)
 	c.mut = &sync.RWMutex{}
 	return c
+}
+
+// Change the background color for each character
+func (c *Canvas) FillBackground(bg AttributeColor) {
+	c.mut.Lock()
+	for _, c := range c.chars {
+		c.bg = bg
+	}
+	c.mut.Unlock()
+}
+
+// Change the foreground color for each character
+func (c *Canvas) Fill(fg AttributeColor) {
+	c.mut.Lock()
+	for _, c := range c.chars {
+		c.fg = fg
+	}
+	c.mut.Unlock()
 }
 
 // Bytes returns only the characters, as a long string with a newline after each row
@@ -151,13 +169,8 @@ func (c *Canvas) Draw() {
 				c.mut.RUnlock()
 				SetXY(x, y)
 				c.mut.RLock()
-				if ch.bright {
-					c.mut.RUnlock()
-					fmt.Print(AttributeAndColor("Bright", ch.fg) + string(ch.s) + NoColor())
-				} else {
-					c.mut.RUnlock()
-					fmt.Print(AttributeOrColor(ch.fg) + string(ch.s) + NoColor())
-				}
+				fmt.Print(ch.fg.Combine(ch.bg).Get(string(ch.s)))
+				c.mut.RUnlock()
 				c.mut.Lock()
 				ch.drawn = true
 				c.mut.Unlock()
@@ -218,8 +231,13 @@ func (c *Canvas) PlotC(x, y uint, fg string, s rune) {
 	c.mut.Lock()
 	chars := (*c).chars
 	chars[index].s = s
-	chars[index].fg = fg
-	chars[index].bright = true
+	attr, ok := LightColorMap[fg]
+	if ok {
+		chars[index].fg = attr
+	} else {
+		// Pink, if the given color name is not found
+		chars[index].fg = Pink
+	}
 	chars[index].drawn = false
 	c.mut.Unlock()
 }
@@ -236,8 +254,30 @@ func (c *Canvas) PlotDC(x, y uint, fg string, s rune) {
 	c.mut.Lock()
 	chars := (*c).chars
 	chars[index].s = s
-	chars[index].fg = fg
-	chars[index].bright = false
+	attr, ok := DarkColorMap[fg]
+	if ok {
+		chars[index].fg = attr
+	} else {
+		// Pink, if the given color name is not found
+		chars[index].fg = Pink
+	}
+	chars[index].drawn = false
+	c.mut.Unlock()
+}
+
+// Plot a foreground color and a rune
+func (c *Canvas) PlotAC(x, y uint, ac AttributeColor, s rune) {
+	if x < 0 || y < 0 {
+		return
+	}
+	if x >= c.w || y >= c.h {
+		return
+	}
+	index := y*c.w + x
+	c.mut.Lock()
+	chars := (*c).chars
+	chars[index].s = s
+	chars[index].fg = ac
 	chars[index].drawn = false
 	c.mut.Unlock()
 }

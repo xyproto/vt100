@@ -6,6 +6,7 @@ cmd/key/key
 cmd/menu/menu
 cmd/move/move
 cmd/shooter/shooter
+cmd/wfk/wfk
 *.tmp
 *.bak
 *.swp

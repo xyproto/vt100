@@ -342,14 +342,6 @@ func AttributeNumber(name string) string {
 	return name
 }
 
-func mapS(sl []string, f func(string) string) []string {
-	retsl := make([]string, len(sl))
-	for i, s := range sl {
-		retsl[i] = f(s)
-	}
-	return retsl
-}
-
 // Execute the terminal command for setting a given display attribute name, like "Bright" or "Blink"
 func AttributeOrColor(name string) string {
 	combined := "DA:" + name

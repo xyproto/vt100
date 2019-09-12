@@ -24,3 +24,21 @@ func TermSize() (uint, uint, error) {
 	}
 	return 0, 0, errors.New("could not get terminal size")
 }
+
+// Convenience function
+func ScreenWidth() int {
+	w, _, err := TermSize()
+	if err != nil {
+		return -1
+	}
+	return int(w)
+}
+
+// Convenience function
+func ScreenHeight() int {
+	_, h, err := TermSize()
+	if err != nil {
+		return -1
+	}
+	return int(h)
+}

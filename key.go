@@ -172,3 +172,20 @@ func KeyOnce() int {
 	}
 	return ascii
 }
+
+// Wait for Esc, Enter or Space to be pressed
+func WaitForKey() {
+	// Get a new TTY and start reading keypresses in a loop
+	r, err := NewTTY()
+	if err != nil {
+		panic(err)
+	}
+	//r.SetTimeout(10 * time.Millisecond)
+	for {
+		switch r.Key() {
+		case 27, 13, 32:
+			return
+		}
+	}
+	r.Close()
+}
