@@ -3,83 +3,102 @@ package vt100
 import (
 	"fmt"
 	"image/color"
-	"strconv"
+	"strings"
 )
 
 // Color aliases, for ease of use, not for performance
 
 type AttributeColor struct {
-	attribute string
-	color     string
+	attributes []string
 }
 
 var (
 	// Dark foreground colors (+ light gray)
-	Black     = &AttributeColor{"", "Black"}
-	Red       = &AttributeColor{"", "Red"}
-	Green     = &AttributeColor{"", "Green"}
-	Yellow    = &AttributeColor{"", "Yellow"}
-	Blue      = &AttributeColor{"", "Blue"}
-	Magenta   = &AttributeColor{"", "Magenta"}
-	Cyan      = &AttributeColor{"", "Cyan"}
-	LightGray = &AttributeColor{"", "White"}
+	Black     = NewAttributeColor("Black")
+	Red       = NewAttributeColor("Red")
+	Green     = NewAttributeColor("Green")
+	Yellow    = NewAttributeColor("Yellow")
+	Blue      = NewAttributeColor("Blue")
+	Magenta   = NewAttributeColor("Magenta")
+	Cyan      = NewAttributeColor("Cyan")
+	LightGray = NewAttributeColor("White")
 
 	// Light foreground colors (+ dark gray)
-	DarkGray     = &AttributeColor{"Bright", "Black"}
-	LightRed     = &AttributeColor{"Bright", "Red"}
-	LightGreen   = &AttributeColor{"Bright", "Green"}
-	LightYellow  = &AttributeColor{"Bright", "Yellow"}
-	LightBlue    = &AttributeColor{"Bright", "Blue"}
-	LightMagenta = &AttributeColor{"Bright", "Magenta"}
-	LightCyan    = &AttributeColor{"Bright", "Cyan"}
-	White        = &AttributeColor{"Bright", "White"}
+	DarkGray     = NewAttributeColor("Bright", "Black")
+	LightRed     = NewAttributeColor("Bright", "Red")
+	LightGreen   = NewAttributeColor("Bright", "Green")
+	LightYellow  = NewAttributeColor("Bright", "Yellow")
+	LightBlue    = NewAttributeColor("Bright", "Blue")
+	LightMagenta = NewAttributeColor("Bright", "Magenta")
+	LightCyan    = NewAttributeColor("Bright", "Cyan")
+	White        = NewAttributeColor("Bright", "White")
 
 	// Aliases
 	Pink = LightMagenta
 	Gray = LightGray
 
 	// Dark background colors (+ light gray)
-	BackgroundBlack     = &AttributeColor{"", "40"}
-	BackgroundRed       = &AttributeColor{"", "41"}
-	BackgroundGreen     = &AttributeColor{"", "42"}
-	BackgroundYellow    = &AttributeColor{"", "43"}
-	BackgroundBlue      = &AttributeColor{"", "44"}
-	BackgroundMagenta   = &AttributeColor{"", "45"}
-	BackgroundCyan      = &AttributeColor{"", "46"}
-	BackgroundLightGray = &AttributeColor{"", "47"}
+	BackgroundBlack     = NewAttributeColor("40")
+	BackgroundRed       = NewAttributeColor("41")
+	BackgroundGreen     = NewAttributeColor("42")
+	BackgroundYellow    = NewAttributeColor("43")
+	BackgroundBlue      = NewAttributeColor("44")
+	BackgroundMagenta   = NewAttributeColor("45")
+	BackgroundCyan      = NewAttributeColor("46")
+	BackgroundLightGray = NewAttributeColor("47")
 
 	// Light background colors (+ dark gray), not supported by all terminal emulators
-	BackgroundDarkGray     = &AttributeColor{"Bright", "40"}
-	BackgroundLightRed     = &AttributeColor{"Bright", "41"}
-	BackgroundLightGreen   = &AttributeColor{"Bright", "42"}
-	BackgroundLightYellow  = &AttributeColor{"Bright", "43"}
-	BackgroundLightBlue    = &AttributeColor{"Bright", "44"}
-	BackgroundLightMagenta = &AttributeColor{"Bright", "45"}
-	BackgroundLightCyan    = &AttributeColor{"Bright", "46"}
-	BackgroundWhite        = &AttributeColor{"Bright", "47"}
+	BackgroundDarkGray     = NewAttributeColor("Bright", "40")
+	BackgroundLightRed     = NewAttributeColor("Bright", "41")
+	BackgroundLightGreen   = NewAttributeColor("Bright", "42")
+	BackgroundLightYellow  = NewAttributeColor("Bright", "43")
+	BackgroundLightBlue    = NewAttributeColor("Bright", "44")
+	BackgroundLightMagenta = NewAttributeColor("Bright", "45")
+	BackgroundLightCyan    = NewAttributeColor("Bright", "46")
+	BackgroundWhite        = NewAttributeColor("Bright", "47")
 
 	// Aliases
 	BackgroundPink = BackgroundLightMagenta
 	BackgroundGray = BackgroundLightGray
 )
 
-func (ac *AttributeColor) GetWithoutNoColor(text string) string {
-	if ac.attribute == "Dark" || ac.attribute == "" {
-		if num, err := strconv.Atoi(ac.color); err == nil {
-			return ColorNum(num) + text
-		}
-		return AttributeOrColor(ac.color) + text
-
-	}
-	return AttributeAndColor(ac.attribute, ac.color) + text
+func NewAttributeColor(attributes ...string) *AttributeColor {
+	return &AttributeColor{attributes}
 }
 
+// Get the terminal codes for setting the attributes for colors, background colors, brightness etc
+func (ac *AttributeColor) GetStart() string {
+	attributeString := strings.Join(mapS(ac.attributes, AttributeNumber), ";")
+	// Replace '{attr1};...;{attrn}' with the generated attribute string and return
+	return get(specVT100, "Set Attribute Mode", map[string]string{"{attr1};...;{attrn}": attributeString}, false)
+}
+
+// Get the full string needed for outputting colored text + stopping the color attribute
 func (ac *AttributeColor) Get(text string) string {
-	return ac.GetWithoutNoColor(text) + NoColor()
+	return ac.GetStart() + text + NoColor()
 }
 
+// Use this color to output the given text
 func (ac *AttributeColor) Output(text string) {
 	fmt.Println(ac.Get(text))
+}
+
+func (ac *AttributeColor) Combine(other *AttributeColor) *AttributeColor {
+	// Set an initial size of the map, where keys are attributes and values are bool
+	amap := make(map[string]bool, len(ac.attributes)+len(other.attributes))
+	for _, attr := range ac.attributes {
+		amap[attr] = true
+	}
+	for _, attr := range other.attributes {
+		amap[attr] = true
+	}
+	newAttributes := make([]string, len(amap))
+	index := 0
+	for attr, _ := range amap {
+		newAttributes[index] = attr
+		index++
+	}
+	return &AttributeColor{newAttributes}
 }
 
 // Easteregg for displaying 24-bit true color on some terminals.

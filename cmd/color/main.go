@@ -18,4 +18,7 @@ func main() {
 	green := vt100.LightGreen.Get
 
 	fmt.Printf("%s: %s\n", blue("status"), green("good"))
+
+	combined := vt100.BackgroundBlue.Combine(vt100.Yellow)
+	combined.Output("DONE")
 }

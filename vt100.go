@@ -237,8 +237,10 @@ Set Attribute Mode	<ESC>[{attr1};...;{attrn}m
 
 // memoization
 var (
-	memo    = make(map[string]string)
-	memoMut = &sync.RWMutex{}
+	memo        = make(map[string]string)
+	memoMut     = &sync.RWMutex{}
+	colorLookup = make(map[string]string)
+	colorMut    = &sync.RWMutex{}
 )
 
 func flatten(m map[string]string) string {
@@ -316,6 +318,36 @@ func ColorNum(colorNum int) string {
 // Execute the terminal command for setting a given color number
 func SetColorNum(colorNum int) {
 	fmt.Print(ColorNum(colorNum))
+}
+
+// Returns the number (as a string) for a given attribute name.
+// Returns the given string if the attribute was not found in the spec.
+func AttributeNumber(name string) string {
+	colorMut.RLock()
+	if val, ok := colorLookup[name]; ok {
+		colorMut.RUnlock()
+		return val
+	}
+	colorMut.RUnlock()
+	for _, line := range strings.Split(specVT100, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasSuffix(trimmed, name) {
+			colorName := strings.TrimSpace(trimmed[:len(trimmed)-len(name)])
+			colorMut.Lock()
+			colorLookup[name] = colorName
+			colorMut.Unlock()
+			return colorName
+		}
+	}
+	return name
+}
+
+func mapS(sl []string, f func(string) string) []string {
+	retsl := make([]string, len(sl))
+	for i, s := range sl {
+		retsl[i] = f(s)
+	}
+	return retsl
 }
 
 // Execute the terminal command for setting a given display attribute name, like "Bright" or "Blink"
