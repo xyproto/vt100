@@ -252,16 +252,17 @@ func (ac AttributeColor) Background() AttributeColor {
 	newA := make(AttributeColor, 0, len(ac))
 	foundOne := false
 	for _, attr := range ac {
-		if (30 <= attr) && (attr <= 37) {
+		if (30 <= attr) && (attr <= 39) {
 			// convert foreground color to background color attribute
 			newA = append(newA, attr+10)
 			foundOne = true
 		}
+		// skip the rest
 	}
 	// Did not find a background attribute to convert, keep any existing background attributes
 	if !foundOne {
 		for _, attr := range ac {
-			if (40 <= attr) && (attr <= 47) {
+			if (40 <= attr) && (attr <= 49) {
 				newA = append(newA, attr)
 			}
 		}

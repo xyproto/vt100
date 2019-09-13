@@ -290,6 +290,33 @@ func (c *Canvas) PlotAC(x, y uint, ac AttributeColor, s rune) {
 	c.mut.Unlock()
 }
 
+// Write colored text
+func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
+	if x < 0 || y < 0 {
+		return
+	}
+	if x >= c.w || y >= c.h {
+		return
+	}
+	index := y*c.w + x
+	c.mut.Lock()
+	chars := (*c).chars
+	lenchars := uint(len(chars))
+	lens := uint(len(s))
+	si := 0
+	converted := bg.Background()
+	for i := index; i < index+lens; i++ {
+		if i < lenchars {
+			chars[i].s = rune(s[si])
+			chars[i].fg = fg
+			chars[i].bg = converted
+			chars[i].drawn = false
+		}
+		si++
+	}
+	c.mut.Unlock()
+}
+
 func (c *Canvas) Resize() {
 	w, h, err := TermSize()
 	if err != nil {

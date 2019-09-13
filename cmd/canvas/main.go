@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/xyproto/vt100"
-	"time"
+	//"time"
 )
 
 func main() {
@@ -13,10 +13,14 @@ func main() {
 
 	c := vt100.NewCanvas()
 	c.Plot(10, 10, '!')
-	c.PlotC(20, 20, "Blue", '?')
-	c.Draw()
+	c.Write(12, 12, vt100.LightGreen, vt100.Default, "hi")
+	c.Write(15, 15, vt100.White, vt100.Magenta, "floating")
+	c.PlotC(12, 17, "Red", '*')
+	c.PlotC(10, 20, "Blue", '?')
 
-	time.Sleep(time.Second * 2)
+	c.Draw()
+	vt100.WaitForKey()
+	//time.Sleep(time.Second * 2)
 
 	vt100.SetLineWrap(true)
 	vt100.ShowCursor(true)
