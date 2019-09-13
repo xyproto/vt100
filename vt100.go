@@ -483,3 +483,15 @@ func BrightColor(text, color string) string {
 func DarkColor(text, color string) string {
 	return AttributeOrColor(color) + text + NoColor()
 }
+
+func Init() {
+	Reset()
+	Clear()
+	ShowCursor(false)
+	SetLineWrap(false)
+}
+
+func Close() {
+	SetLineWrap(true)
+	ShowCursor(true)
+}
