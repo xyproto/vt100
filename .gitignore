@@ -7,6 +7,7 @@ cmd/menu/menu
 cmd/move/move
 cmd/shooter/shooter
 cmd/wfk/wfk
+cmd/blink/blink
 *.tmp
 *.bak
 *.swp

@@ -21,6 +21,4 @@ func main() {
 
 	combined := vt100.BackgroundBlue.Combine(vt100.Yellow)
 	combined.Output("DONE")
-
-	vt100.Blink.Output("bye")
 }
