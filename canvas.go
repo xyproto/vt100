@@ -40,8 +40,10 @@ func NewCanvas() *Canvas {
 // Change the background color for each character
 func (c *Canvas) FillBackground(bg AttributeColor) {
 	c.mut.Lock()
-	for _, c := range c.chars {
-		c.bg = bg
+	converted := bg.Background()
+	for i, _ := range c.chars {
+		c.chars[i].bg = converted
+		c.chars[i].drawn = false
 	}
 	c.mut.Unlock()
 }
@@ -49,8 +51,8 @@ func (c *Canvas) FillBackground(bg AttributeColor) {
 // Change the foreground color for each character
 func (c *Canvas) Fill(fg AttributeColor) {
 	c.mut.Lock()
-	for _, c := range c.chars {
-		c.fg = fg
+	for i, _ := range c.chars {
+		c.chars[i].fg = fg
 	}
 	c.mut.Unlock()
 }
@@ -169,7 +171,13 @@ func (c *Canvas) Draw() {
 				c.mut.RUnlock()
 				SetXY(x, y)
 				c.mut.RLock()
-				fmt.Print(ch.fg.Combine(ch.bg).Get(string(ch.s)))
+				if len(ch.bg) == 0 {
+					fmt.Print(ch.fg.Get(string(ch.s)))
+				} else if ch.s == rune(0) {
+					fmt.Print(ch.fg.Combine(ch.bg).Get(string(' ')))
+				} else {
+					fmt.Print(ch.fg.Combine(ch.bg).Get(string(ch.s)))
+				}
 				c.mut.RUnlock()
 				c.mut.Lock()
 				ch.drawn = true

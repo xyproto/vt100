@@ -60,56 +60,108 @@ var (
 	// Aliases
 	BackgroundGray = BackgroundLightGray
 
-	// Light background colors (+ dark gray), not used because "Bright" would apply to the foreground
-	//BackgroundDarkGray     = NewAttributeColor("Bright", "40")
-	//BackgroundLightRed     = NewAttributeColor("Bright", "41")
-	//BackgroundLightGreen   = NewAttributeColor("Bright", "42")
-	//BackgroundLightYellow  = NewAttributeColor("Bright", "43")
-	//BackgroundLightBlue    = NewAttributeColor("Bright", "44")
-	//BackgroundLightMagenta = NewAttributeColor("Bright", "45")
-	//BackgroundLightCyan    = NewAttributeColor("Bright", "46")
-	//BackgroundWhite        = NewAttributeColor("Bright", "47")
+	// Default colors (usually gray)
+	Default           = NewAttributeColor("39")
+	BackgroundDefault = NewAttributeColor("49")
+
+	// Lookup tables
 
 	DarkColorMap = map[string]AttributeColor{
-		"black":   Black,
-		"Black":   Black,
-		"red":     Red,
-		"Red":     Red,
-		"green":   Green,
-		"Green":   Green,
-		"yellow":  Yellow,
-		"Yellow":  Yellow,
-		"blue":    Blue,
-		"Blue":    Blue,
-		"magenta": Magenta,
-		"Magenta": Magenta,
-		"cyan":    Cyan,
-		"Cyan":    Cyan,
-		"gray":    DarkGray,
-		"Gray":    DarkGray,
-		"white":   White,
-		"White":   White,
+		"black":        Black,
+		"Black":        Black,
+		"red":          Red,
+		"Red":          Red,
+		"green":        Green,
+		"Green":        Green,
+		"yellow":       Yellow,
+		"Yellow":       Yellow,
+		"blue":         Blue,
+		"Blue":         Blue,
+		"magenta":      Magenta,
+		"Magenta":      Magenta,
+		"cyan":         Cyan,
+		"Cyan":         Cyan,
+		"gray":         DarkGray,
+		"Gray":         DarkGray,
+		"white":        White,
+		"White":        White,
+		"darkred":      Red,
+		"DarkRed":      Red,
+		"darkgreen":    Green,
+		"DarkGreen":    Green,
+		"darkyellow":   Yellow,
+		"DarkYellow":   Yellow,
+		"darkblue":     Blue,
+		"DarkBlue":     Blue,
+		"darkmagenta":  Magenta,
+		"DarkMagenta":  Magenta,
+		"darkcyan":     Cyan,
+		"DarkCyan":     Cyan,
+		"darkgray":     DarkGray,
+		"DarkGray":     DarkGray,
+		"lightred":     LightRed,
+		"LightRed":     LightRed,
+		"lightgreen":   LightGreen,
+		"LightGreen":   LightGreen,
+		"lightyellow":  LightYellow,
+		"LightYellow":  LightYellow,
+		"lightblue":    LightBlue,
+		"LightBlue":    LightBlue,
+		"lightmagenta": LightMagenta,
+		"LightMagenta": LightMagenta,
+		"lightcyan":    LightCyan,
+		"LightCyan":    LightCyan,
+		"lightgray":    LightGray,
+		"LightGray":    LightGray,
 	}
 
 	LightColorMap = map[string]AttributeColor{
-		"black":   DarkGray,
-		"Black":   DarkGray,
-		"red":     LightRed,
-		"Red":     LightRed,
-		"green":   LightGreen,
-		"Green":   LightGreen,
-		"yellow":  LightYellow,
-		"Yellow":  LightYellow,
-		"blue":    LightBlue,
-		"Blue":    LightBlue,
-		"magenta": LightMagenta,
-		"Magenta": LightMagenta,
-		"cyan":    LightCyan,
-		"Cyan":    LightCyan,
-		"gray":    LightGray,
-		"Gray":    LightGray,
-		"white":   White,
-		"White":   White,
+		"black":        DarkGray,
+		"Black":        DarkGray,
+		"red":          LightRed,
+		"Red":          LightRed,
+		"green":        LightGreen,
+		"Green":        LightGreen,
+		"yellow":       LightYellow,
+		"Yellow":       LightYellow,
+		"blue":         LightBlue,
+		"Blue":         LightBlue,
+		"magenta":      LightMagenta,
+		"Magenta":      LightMagenta,
+		"cyan":         LightCyan,
+		"Cyan":         LightCyan,
+		"gray":         LightGray,
+		"Gray":         LightGray,
+		"white":        White,
+		"White":        White,
+		"lightred":     LightRed,
+		"LightRed":     LightRed,
+		"lightgreen":   LightGreen,
+		"LightGreen":   LightGreen,
+		"lightyellow":  LightYellow,
+		"LightYellow":  LightYellow,
+		"lightblue":    LightBlue,
+		"LightBlue":    LightBlue,
+		"lightmagenta": LightMagenta,
+		"LightMagenta": LightMagenta,
+		"lightcyan":    LightCyan,
+		"LightCyan":    LightCyan,
+		"lightgray":    LightGray,
+		"LightGray":    LightGray,
+		"darkred":      Red,
+		"DarkRed":      Red,
+		"darkgreen":    Green,
+		"DarkGreen":    Green,
+		"darkyellow":   Yellow,
+		"DarkYellow":   Yellow,
+		"darkblue":     Blue,
+		"DarkBlue":     Blue,
+		"darkmagenta":  Magenta,
+		"DarkMagenta":  Magenta,
+		"darkcyan":     Cyan,
+		"DarkCyan":     Cyan,
+		"darkgray":     DarkGray,
+		"DarkGray":     DarkGray,
 	}
 )
 
@@ -195,6 +247,28 @@ func (ac AttributeColor) Tail() []byte {
 	return ac[1:]
 }
 
+// Modify color attributes so that they become background color attributes instead
+func (ac AttributeColor) Background() AttributeColor {
+	newA := make(AttributeColor, 0, len(ac))
+	foundOne := false
+	for _, attr := range ac {
+		if (30 <= attr) && (attr <= 37) {
+			// convert foreground color to background color attribute
+			newA = append(newA, attr+10)
+			foundOne = true
+		}
+	}
+	// Did not find a background attribute to convert, keep any existing background attributes
+	if !foundOne {
+		for _, attr := range ac {
+			if (40 <= attr) && (attr <= 47) {
+				newA = append(newA, attr)
+			}
+		}
+	}
+	return newA
+}
+
 func b2s(b byte) string {
 	return strconv.Itoa(int(b))
 }
@@ -245,7 +319,7 @@ func (ac AttributeColor) Combine(other AttributeColor) AttributeColor {
 	for _, attr := range other {
 		amap[attr] = true
 	}
-	newAttributes := make([]byte, len(amap))
+	newAttributes := make(AttributeColor, len(amap))
 	index := 0
 	for attr, _ := range amap {
 		newAttributes[index] = attr
@@ -269,6 +343,14 @@ func Write(x, y int, text string, fg, bg AttributeColor) {
 func WriteRune(x, y int, r rune, fg, bg AttributeColor) {
 	SetXY(uint(x), uint(y))
 	fmt.Print(fg.Combine(bg).Get(string(r)))
+}
+
+func (ac AttributeColor) Ints() []int {
+	il := make([]int, len(ac))
+	for index, b := range ac {
+		il[index] = int(b)
+	}
+	return il
 }
 
 // This is not part of the VT100 spec, but an easteregg for displaying 24-bit
