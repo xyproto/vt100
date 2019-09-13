@@ -5,12 +5,16 @@ import (
 	"github.com/xyproto/vt100"
 )
 
+// This program demonstrates several different ways of outputting colored text
+// Use `./color | cat -v` to see the color codes that are used.
+
 func main() {
+	vt100.Blue.Output("This is in blue")
+
 	fmt.Println(vt100.BrightColor("hi", "Green"))
 	fmt.Println(vt100.BrightColor("done", "Blue"))
 
-	fmt.Print(vt100.LightGreen.Get("process: "))
-	vt100.LightRed.Output("ERROR")
+	fmt.Println(vt100.Words("process: ERROR", "green", "red"))
 
 	vt100.LightYellow.Output("jk")
 
@@ -19,6 +23,6 @@ func main() {
 
 	fmt.Printf("%s: %s\n", blue("status"), green("good"))
 
-	combined := vt100.BackgroundBlue.Combine(vt100.Yellow)
+	combined := vt100.Blue.Background().Combine(vt100.Yellow).Combine(vt100.Reverse)
 	combined.Output("DONE")
 }
