@@ -9,7 +9,7 @@ import (
 
 // Color aliases, for ease of use, not for performance
 
-type AttributeColor []int
+type AttributeColor []uint8
 
 var (
 	// Non-color attributes
@@ -113,7 +113,7 @@ var (
 	}
 )
 
-func s2i(attribute string) int {
+func s2b(attribute string) byte {
 	switch attribute {
 	case "Reset all attributes", "Reset", "reset", "reset all attributes":
 		return 0
@@ -148,14 +148,15 @@ func s2i(attribute string) int {
 	}
 	num, err := strconv.Atoi(attribute)
 	if err != nil {
-		return -1
+		// Not an int and not one of the words above
+		return 0
 	}
-	return num
+	return byte(num)
 }
 
 // For each element in a slice, apply the function f
-func mapSI(sl []string, f func(string) int) []int {
-	result := make([]int, len(sl))
+func mapSB(sl []string, f func(string) byte) []byte {
+	result := make([]byte, len(sl))
 	for i, s := range sl {
 		result[i] = f(s)
 	}
@@ -163,7 +164,7 @@ func mapSI(sl []string, f func(string) int) []int {
 }
 
 func NewAttributeColor(attributes ...string) AttributeColor {
-	return AttributeColor(mapSI(attributes, s2i))
+	return AttributeColor(mapSB(attributes, s2b))
 }
 
 // For each element in a slice, apply the function f
@@ -176,41 +177,75 @@ func mapS(sl []string, f func(string) string) []string {
 }
 
 // For each element in a slice, apply the function f
-func mapIS(il []int, f func(int) string) []string {
-	result := make([]string, len(il))
-	for i, s := range il {
-		result[i] = f(s)
+func mapBS(bl []byte, f func(byte) string) []string {
+	result := make([]string, len(bl))
+	for i, b := range bl {
+		result[i] = f(b)
 	}
 	return result
 }
 
-// Get the terminal codes for setting the attributes for colors, background colors, brightness etc
-func (ac AttributeColor) GetStart() string {
-	attributeString := strings.Join(mapIS(ac, strconv.Itoa), ";")
+func (ac AttributeColor) Head() byte {
+	// no error checking
+	return ac[0]
+}
+
+func (ac AttributeColor) Tail() []byte {
+	// no error checking
+	return ac[1:]
+}
+
+func b2s(b byte) string {
+	return strconv.Itoa(int(b))
+}
+
+// Return the VT100 terminal codes for setting this combination of attributes and color attributes
+func (ac AttributeColor) String() string {
+	attributeString := strings.Join(mapBS(ac, b2s), ";")
 	// Replace '{attr1};...;{attrn}' with the generated attribute string and return
 	return get(specVT100, "Set Attribute Mode", map[string]string{"{attr1};...;{attrn}": attributeString}, false)
 }
 
-// Get the full string needed for outputting colored text + stopping the color attribute
-func (ac AttributeColor) Get(text string) string {
-	return ac.GetStart() + text + NoColor()
+// Get the full string needed for outputting colored texti, with the text and stopping the color attribute
+func (ac AttributeColor) StartStop(text string) string {
+	return ac.String() + text + NoColor()
 }
 
-// Use this color to output the given text
+// An alias for StartStop
+func (ac AttributeColor) Get(text string) string {
+	return ac.String() + text + NoColor()
+}
+
+// Get the full string needed for outputting colored text, with the text, but don't reset the attributes at the end of the string
+func (ac AttributeColor) Start(text string) string {
+	return ac.String() + text
+}
+
+// Get the text and the terminal codes for resetting the attributes
+func (ac AttributeColor) Stop(text string) string {
+	return text + NoColor()
+}
+
+// Return a string for resetting the attributes
+func Stop() string {
+	return NoColor()
+}
+
+// Use this color to output the given text. Will reset the attributes at the end of the string.
 func (ac AttributeColor) Output(text string) {
 	fmt.Println(ac.Get(text))
 }
 
 func (ac AttributeColor) Combine(other AttributeColor) AttributeColor {
 	// Set an initial size of the map, where keys are attributes and values are bool
-	amap := make(map[int]bool, len(ac)+len(other))
+	amap := make(map[byte]bool, len(ac)+len(other))
 	for _, attr := range ac {
 		amap[attr] = true
 	}
 	for _, attr := range other {
 		amap[attr] = true
 	}
-	newAttributes := make([]int, len(amap))
+	newAttributes := make([]byte, len(amap))
 	index := 0
 	for attr, _ := range amap {
 		newAttributes[index] = attr
@@ -225,7 +260,7 @@ func (ac AttributeColor) Bright() AttributeColor {
 	//newAttributes := make([]string, lenAttr + 1)
 	//newAttributes[lenAttr] = "Bright"
 	//return &AttributeColor{newAttributes}
-	return AttributeColor(append(ac, s2i("Bright")))
+	return AttributeColor(append(ac, Bright.Head()))
 }
 
 // Output a string at x, y with the given colors
