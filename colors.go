@@ -256,10 +256,6 @@ func (ac AttributeColor) Combine(other AttributeColor) AttributeColor {
 
 // Return a new AttributeColor that has "Bright" added to the list of attributes
 func (ac AttributeColor) Bright() AttributeColor {
-	//lenAttr := len(ac.attributes)
-	//newAttributes := make([]string, lenAttr + 1)
-	//newAttributes[lenAttr] = "Bright"
-	//return &AttributeColor{newAttributes}
 	return AttributeColor(append(ac, Bright.Head()))
 }
 
@@ -271,15 +267,14 @@ func Write(x, y int, text string, fg, bg AttributeColor) {
 
 // Output a rune at x, y with the given colors
 func WriteRune(x, y int, r rune, fg, bg AttributeColor) {
-	Write(x, y, string(r), fg, bg)
+	SetXY(uint(x), uint(y))
+	fmt.Print(fg.Combine(bg).Get(string(r)))
 }
 
-// Easteregg for displaying 24-bit true color on some terminals.
-// This is not part of the VT100 spec.
-// Example use:
-// fmt.Println("not VT100, but " + vt100.TrueColor(color.RGBA{0xa0, 0xe0, 0xff, 0xff}, "TrueColor"))
+// This is not part of the VT100 spec, but an easteregg for displaying 24-bit
+// "true color" on some terminals. Example use:
+// fmt.Println(vt100.TrueColor(color.RGBA{0xa0, 0xe0, 0xff, 0xff}, "TrueColor"))
 func TrueColor(fg color.Color, text string) string {
 	c := color.NRGBAModel.Convert(fg).(color.NRGBA)
-	//fmt.Printf("(%d,%d,%d)\n", c.R, c.G, c.B)
 	return fmt.Sprintf("\x1b[38;2;%d;%d;%dm%s\x1b[0m", c.R, c.G, c.B, text)
 }
