@@ -290,7 +290,7 @@ func (c *Canvas) PlotAC(x, y uint, ac AttributeColor, s rune) {
 	c.mut.Unlock()
 }
 
-// Write colored text
+// Write will write a string to the canvas, without conversion of the background color bg to a background color (use bg.Background()).
 func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 	if x < 0 || y < 0 {
 		return
@@ -304,16 +304,34 @@ func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 	lenchars := uint(len(chars))
 	lens := uint(len(s))
 	si := 0
-	converted := bg.Background()
+	//converted := bg.Background()
 	for i := index; i < index+lens; i++ {
 		if i < lenchars {
 			chars[i].s = rune(s[si])
 			chars[i].fg = fg
-			chars[i].bg = converted
+			chars[i].bg = bg
 			chars[i].drawn = false
 		}
 		si++
 	}
+	c.mut.Unlock()
+}
+
+// WriteRune will write a colored rune to the canvas, without conversion of the bg color to a background color (use bg.Background()).
+func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
+	if x < 0 || y < 0 {
+		return
+	}
+	if x >= c.w || y >= c.h {
+		return
+	}
+	index := y*c.w + x
+	c.mut.Lock()
+	chars := (*c).chars
+	chars[index].s = r
+	chars[index].fg = fg
+	chars[index].bg = bg
+	chars[index].drawn = false
 	c.mut.Unlock()
 }
 
