@@ -302,17 +302,15 @@ func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 	c.mut.Lock()
 	chars := (*c).chars
 	lenchars := uint(len(chars))
-	lens := uint(len(s))
-	si := 0
 	//converted := bg.Background()
-	for i := index; i < index+lens; i++ {
+	for si, r := range s {
+		i := index + uint(si)
 		if i < lenchars {
-			chars[i].s = rune(s[si])
+			chars[i].s = r
 			chars[i].fg = fg
 			chars[i].bg = bg
 			chars[i].drawn = false
 		}
-		si++
 	}
 	c.mut.Unlock()
 }
