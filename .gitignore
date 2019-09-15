@@ -9,7 +9,7 @@ cmd/shooter/shooter
 cmd/wfk/wfk
 cmd/blink/blink
 cmd/bg/bg
-cmd/runes/runes
+cmd/ok/ok
 *.tmp
 *.bak
 *.swp

@@ -36,10 +36,7 @@ func main() {
 	c.WriteRune(17, 14, green, none, TR)
 
 	c.WriteRune(12, 15, green, none, V)
-	c.WriteRune(13, 15, green, none, ' ')
-	c.WriteRune(14, 15, green, none, 'O')
-	c.WriteRune(15, 15, green, none, 'K')
-	c.WriteRune(16, 15, green, none, ' ')
+	c.Write(14, 15, green, none, "OK")
 	c.WriteRune(17, 15, green, none, V2)
 
 	c.WriteRune(12, 16, green, none, BL)
