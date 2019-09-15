@@ -7,7 +7,7 @@ import (
 	"sync"
 )
 
-// From http://www.termsys.demon.co.uk/vtansi.htm
+// From http://www.termsys.demon.co.uk/vtansi.htm. Not the full spec, but a good subset:
 const specVT100 = `
 
 ANSI/VT100 Terminal Control Escape Sequences
