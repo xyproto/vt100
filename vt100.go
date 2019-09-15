@@ -489,9 +489,15 @@ func Init() {
 	Clear()
 	ShowCursor(false)
 	SetLineWrap(false)
+	EchoOff()
 }
 
 func Close() {
 	SetLineWrap(true)
 	ShowCursor(true)
+	Home()
+}
+
+func EchoOff() {
+	fmt.Print("\033[12h")
 }
