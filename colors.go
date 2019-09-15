@@ -9,7 +9,7 @@ import (
 
 // Color aliases, for ease of use, not for performance
 
-type AttributeColor []uint8
+type AttributeColor []byte
 
 var (
 	// Non-color attributes
@@ -20,6 +20,8 @@ var (
 	Blink      = NewAttributeColor("Blink")
 	Reverse    = NewAttributeColor("Reverse")
 	Hidden     = NewAttributeColor("Hidden")
+
+	None AttributeColor
 
 	// There is also: reset, dim, underscore, reverse and hidden
 
@@ -58,7 +60,8 @@ var (
 	BackgroundLightGray = NewAttributeColor("47")
 
 	// Aliases
-	BackgroundGray = BackgroundLightGray
+	BackgroundWhite = BackgroundLightGray
+	BackgroundGray  = BackgroundLightGray
 
 	// Default colors (usually gray)
 	Default           = NewAttributeColor("39")
