@@ -13,8 +13,8 @@ func main() {
 
 	c := vt100.NewCanvas()
 	c.Plot(10, 10, '!')
-	c.Write(12, 12, vt100.LightGreen, vt100.Default, "hi")
-	c.Write(15, 15, vt100.White, vt100.Magenta, "floating")
+	c.Write(12, 12, vt100.LightGreen, vt100.BackgroundDefault, "hi")
+	c.Write(15, 15, vt100.White, vt100.BackgroundMagenta, "floating")
 	c.PlotC(12, 17, "Red", '*')
 	c.PlotC(10, 20, "Blue", '?')
 

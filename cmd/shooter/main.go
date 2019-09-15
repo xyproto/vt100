@@ -16,6 +16,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer tty.Close()
 
 	// Mutex used when the terminal is resized
 	resizeMut := &sync.RWMutex{}
@@ -34,6 +35,7 @@ func main() {
 			nc := c.Resized()
 			if nc != nil {
 				c.Clear()
+				vt100.Clear()
 				c.Draw()
 				c = nc
 			}
@@ -48,9 +50,8 @@ func main() {
 		}
 	}()
 
-	vt100.Clear()
-	vt100.ShowCursor(false)
-	vt100.SetLineWrap(false)
+	vt100.Init()
+	defer vt100.Close()
 
 	// The loop time that is aimed for
 	loopDuration := time.Millisecond * 20
@@ -58,10 +59,16 @@ func main() {
 
 	running := true
 
+	// Don't output keypress terminal codes on the screen
+	tty.NoBlock()
+
+	var key int
+
 	for running {
 
 		// Draw elements in their new positions
-		vt100.Clear()
+		c.Clear()
+		//c.Draw()
 
 		resizeMut.RLock()
 		for _, bullet := range bullets {
@@ -70,11 +77,10 @@ func main() {
 		bob.Draw(c)
 		resizeMut.RUnlock()
 
+		//vt100.Clear()
+
 		// Update the canvas
 		c.Draw()
-
-		// Don't output keypress terminal codes on the screen
-		tty.NoBlock()
 
 		// Wait a bit
 		end := time.Now()
@@ -89,7 +95,8 @@ func main() {
 		moved := false
 
 		// Handle events
-		switch tty.Key() {
+		key = tty.Key()
+		switch key {
 		case 38: // Up
 			resizeMut.Lock()
 			moved = bob.Up(c)
@@ -119,7 +126,7 @@ func main() {
 				// No free place to the right
 				break
 			}
-			if r == rune(0) {
+			if r == rune(0) || r == bobEraseChar || r == bulletEraseChar {
 				// Fire a new bullet
 				bullets = append(bullets, NewBullet(bob.x+1, bob.y, 1, 0))
 			}
@@ -136,6 +143,11 @@ func main() {
 			}
 		}
 
+		// If a key was pressed, clear the screen, just in case it shifted
+		if key != 0 {
+			vt100.Clear()
+		}
+
 		// Change state
 		resizeMut.Lock()
 		for _, bullet := range bullets {
@@ -146,16 +158,10 @@ func main() {
 		}
 		resizeMut.Unlock()
 
-		// Erase all previous positions
-		c.Plot(uint(bob.oldx), uint(bob.oldy), rune(0))
+		// Erase all previous positions not occupied by current items
+		c.Plot(uint(bob.oldx), uint(bob.oldy), bobEraseChar)
 		for _, bullet := range bullets {
-			c.Plot(uint(bullet.oldx), uint(bullet.oldy), rune(0))
+			c.Plot(uint(bullet.oldx), uint(bullet.oldy), bulletEraseChar)
 		}
 	}
-
-	tty.Close()
-
-	vt100.SetLineWrap(true)
-	vt100.ShowCursor(true)
-	vt100.Home()
 }

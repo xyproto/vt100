@@ -50,6 +50,7 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 			nc := c.Resized()
 			if nc != nil {
 				c.Clear()
+				vt100.Clear()
 				c.Draw()
 				c = nc
 			}
@@ -60,9 +61,8 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 		}
 	}()
 
-	vt100.Clear()
-	vt100.ShowCursor(false)
-	vt100.SetLineWrap(false)
+	vt100.Init()
+	defer vt100.Close()
 
 	// The loop time that is aimed for
 	loopDuration := time.Millisecond * 20
@@ -73,7 +73,7 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 	for running {
 
 		// Draw elements in their new positions
-		vt100.Clear()
+		//vt100.Clear()
 
 		resizeMut.RLock()
 		menu.Draw(c)
@@ -166,6 +166,13 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 				}
 			}
 		}
+
+		// If a key was pressed, clear the screen, just in case it shifted
+		//if key != 0 {
+		//	vt100.Clear()
+		//	c.Draw()
+		//}
+
 	}
 
 	if menu.Selected() >= 0 {
@@ -178,10 +185,6 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 	}
 
 	tty.Close()
-
-	vt100.SetLineWrap(true)
-	vt100.ShowCursor(true)
-	vt100.Home()
 
 	return menu.Selected()
 }

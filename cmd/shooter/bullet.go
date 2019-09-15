@@ -4,6 +4,8 @@ import (
 	"github.com/xyproto/vt100"
 )
 
+const bulletEraseChar = ' ' // for erasing when moving
+
 type Bullet struct {
 	x, y       int    // current position
 	oldx, oldy int    // previous position
@@ -98,13 +100,13 @@ func (b *Bullet) HitSomething(c *vt100.Canvas) bool {
 	if err != nil {
 		return false
 	}
-	if r != rune(0) {
+	if r != rune(0) && r != bulletEraseChar && r != bobEraseChar {
 		// Hit something. Check the next-next position too
 		r2, err := c.At(uint(b.x+b.vx), uint(b.y+b.vy))
 		if err != nil {
 			return false
 		}
-		if r2 != rune(0) {
+		if r2 != rune(0) && r2 != bulletEraseChar && r2 != bobEraseChar {
 			b.Stop()
 		}
 		return true

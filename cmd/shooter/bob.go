@@ -4,6 +4,8 @@ import (
 	"github.com/xyproto/vt100"
 )
 
+const bobEraseChar = ' ' // for erasing when moving
+
 type Bob struct {
 	x, y       int    // current position
 	oldx, oldy int    // previous position
