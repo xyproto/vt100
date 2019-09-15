@@ -5,7 +5,10 @@ import (
 	"time"
 )
 
-var defaultTimeout = 10 * time.Millisecond
+var (
+	defaultTimeout = 10 * time.Millisecond
+	lastKey        int
+)
 
 type TTY struct {
 	t       *term.Term
@@ -136,8 +139,6 @@ func KeyCodeOnce() int {
 	}
 	return keyCode
 }
-
-var lastKey int
 
 // Return the keyCode or ascii, but ignore repeated keys
 func (tty *TTY) Key() int {
