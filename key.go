@@ -178,6 +178,7 @@ func KeyOnce() int {
 func WaitForKey() {
 	// Get a new TTY and start reading keypresses in a loop
 	r, err := NewTTY()
+	defer r.Close()
 	if err != nil {
 		panic(err)
 	}
@@ -188,5 +189,4 @@ func WaitForKey() {
 			return
 		}
 	}
-	r.Close()
 }
