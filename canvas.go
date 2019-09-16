@@ -290,7 +290,7 @@ func (c *Canvas) PlotAC(x, y uint, ac AttributeColor, s rune) {
 	c.mut.Unlock()
 }
 
-// Write will write a string to the canvas, without conversion of the background color bg to a background color (use bg.Background()).
+// Write will write a string to the canvas, without conversion of the background color bg to a background color (use bg.Background()). Beware that strings that consists of multi-byte runes may not be written correctly! For those cases, use WriteRune instead.
 func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 	if x < 0 || y < 0 {
 		return
