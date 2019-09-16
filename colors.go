@@ -49,8 +49,6 @@ var (
 	// Aliases
 	Pink        = LightMagenta
 	Gray        = LightGray
-	Purple      = Magenta
-	LightPurple = LightMagenta
 
 	// Dark background colors (+ light gray)
 	BackgroundBlack     = NewAttributeColor("40")
@@ -65,7 +63,6 @@ var (
 	// Aliases
 	BackgroundWhite  = BackgroundLightGray
 	BackgroundGray   = BackgroundLightGray
-	BackgroundPurple = BackgroundMagenta
 
 	// Default colors (usually gray)
 	Default           = NewAttributeColor("39")
@@ -86,8 +83,6 @@ var (
 		"Blue":         Blue,
 		"magenta":      Magenta,
 		"Magenta":      Magenta,
-		"purple":       Magenta,
-		"Purple":       Magenta,
 		"cyan":         Cyan,
 		"Cyan":         Cyan,
 		"gray":         DarkGray,
@@ -104,8 +99,6 @@ var (
 		"DarkBlue":     Blue,
 		"darkmagenta":  Magenta,
 		"DarkMagenta":  Magenta,
-		"darkpurple":   Magenta,
-		"DarkPurple":   Magenta,
 		"darkcyan":     Cyan,
 		"DarkCyan":     Cyan,
 		"darkgray":     DarkGray,
@@ -120,8 +113,6 @@ var (
 		"LightBlue":    LightBlue,
 		"lightmagenta": LightMagenta,
 		"LightMagenta": LightMagenta,
-		"lightpurple":  LightMagenta,
-		"LightPurple":  LightMagenta,
 		"lightcyan":    LightCyan,
 		"LightCyan":    LightCyan,
 		"lightgray":    LightGray,
@@ -141,8 +132,6 @@ var (
 		"Blue":         LightBlue,
 		"magenta":      LightMagenta,
 		"Magenta":      LightMagenta,
-		"purple":       LightMagenta,
-		"Purple":       LightMagenta,
 		"cyan":         LightCyan,
 		"Cyan":         LightCyan,
 		"gray":         LightGray,
@@ -159,8 +148,6 @@ var (
 		"LightBlue":    LightBlue,
 		"lightmagenta": LightMagenta,
 		"LightMagenta": LightMagenta,
-		"lightpurple":  LightMagenta,
-		"LightPurple":  LightMagenta,
 		"lightcyan":    LightCyan,
 		"LightCyan":    LightCyan,
 		"lightgray":    LightGray,
@@ -175,8 +162,6 @@ var (
 		"DarkBlue":     Blue,
 		"darkmagenta":  Magenta,
 		"DarkMagenta":  Magenta,
-		"darkpurple":   Magenta,
-		"DarkPurple":   Magenta,
 		"darkcyan":     Cyan,
 		"DarkCyan":     Cyan,
 		"darkgray":     DarkGray,
@@ -210,7 +195,7 @@ func s2b(attribute string) byte {
 		return 33
 	case "Blue", "blue":
 		return 34
-	case "Magenta", "magenta", "Purple", "purple":
+	case "Magenta", "magenta":
 		return 35
 	case "Cyan", "cyan":
 		return 36
