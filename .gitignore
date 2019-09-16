@@ -10,6 +10,7 @@ cmd/wfk/wfk
 cmd/blink/blink
 cmd/bg/bg
 cmd/ok/ok
+cmd/widget/widget
 *.tmp
 *.bak
 *.swp
