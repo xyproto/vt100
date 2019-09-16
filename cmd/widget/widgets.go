@@ -27,21 +27,21 @@ func (t *Theme) DrawBox(c *vt100.Canvas, r *Box, extrude bool) *Rect {
 		FG2 = t.BoxLight
 	}
 	c.WriteRune(x, y, FG1, t.BoxBackground, t.TL)
-	//c.Write(x+1, y, FG1, t.BoxBackground, RepeatRune(t.H, width-2))
+	//c.Write(x+1, y, FG1, t.BoxBackground, RepeatRune(t.HT, width-2))
 	for i := x + 1; i < x+(width-1); i++ {
-		c.WriteRune(i, y, FG1, t.BoxBackground, t.H)
+		c.WriteRune(i, y, FG1, t.BoxBackground, t.HT)
 	}
 	c.WriteRune(x+width-1, y, FG1, t.BoxBackground, t.TR)
 	for i := y + 1; i < y+height; i++ {
-		c.WriteRune(x, i, FG1, t.BoxBackground, t.V)
+		c.WriteRune(x, i, FG1, t.BoxBackground, t.VL)
 		c.Write(x+1, i, FG1, t.BoxBackground, RepeatRune(' ', width-2))
-		c.WriteRune(x+width-1, i, FG2, t.BoxBackground, t.V2)
+		c.WriteRune(x+width-1, i, FG2, t.BoxBackground, t.VR)
 	}
 	c.WriteRune(x, y+height-1, FG1, t.BoxBackground, t.BL)
 	for i := x + 1; i < x+(width-1); i++ {
-		c.WriteRune(i, y+height-1, FG2, t.BoxBackground, t.H2)
+		c.WriteRune(i, y+height-1, FG2, t.BoxBackground, t.HB)
 	}
-	//c.Write(x+1, y+height-1, FG2, t.BoxBackground, RepeatRune(t.H2, width-2))
+	//c.Write(x+1, y+height-1, FG2, t.BoxBackground, RepeatRune(t.HB, width-2))
 	c.WriteRune(x+width-1, y+height-1, FG2, t.BoxBackground, t.BR)
 	return &Rect{int(x), int(y), int(width), int(height)}
 }

@@ -11,7 +11,7 @@ type Theme struct {
 	BoxLight, BoxDark, BoxBackground,
 	ButtonFocus, ButtonText,
 	ListFocus, ListText, ListBackground vt100.AttributeColor
-	TL, TR, BL, BR, V, V2, H, H2 rune
+	TL, TR, BL, BR, VL, VR, HT, HB rune
 }
 
 func NewTheme() *Theme {
@@ -31,10 +31,10 @@ func NewTheme() *Theme {
 		TR:             '╮', // top right
 		BL:             '╰', // bottom left
 		BR:             '╯', // bottom right
-		V:              '│', // vertical line, left side
-		V2:             '│', // vertical line, right side
-		H:              '─', // horizontal line
-		H2:             '─', // horizontal bottom line
+		VL:             '│', // vertical line, left side
+		VR:             '│', // vertical line, right side
+		HT:             '─', // horizontal line
+		HB:             '─', // horizontal bottom line
 	}
 }
 
