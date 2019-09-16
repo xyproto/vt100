@@ -6,7 +6,7 @@ cmd/key/key
 cmd/menu/menu
 cmd/move/move
 cmd/shooter/shooter
-cmd/wfk/wfk
+cmd/waitkey/waitkey
 cmd/blink/blink
 cmd/bg/bg
 cmd/ok/ok

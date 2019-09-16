@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/xyproto/vt100"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -137,9 +138,7 @@ func main() {
 			resizeMut.RUnlock()
 			err := ioutil.WriteFile("canvas.txt", b, 0644)
 			if err != nil {
-				panic(err)
-				running = false
-				break
+				log.Fatalln(err)
 			}
 		}
 
