@@ -3,6 +3,7 @@ package vt100
 import (
 	"fmt"
 	"image/color"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -46,8 +47,10 @@ var (
 	White        = NewAttributeColor("Bright", "White")
 
 	// Aliases
-	Pink = LightMagenta
-	Gray = LightGray
+	Pink        = LightMagenta
+	Gray        = LightGray
+	Purple      = Magenta
+	LightPurple = LightMagenta
 
 	// Dark background colors (+ light gray)
 	BackgroundBlack     = NewAttributeColor("40")
@@ -60,8 +63,9 @@ var (
 	BackgroundLightGray = NewAttributeColor("47")
 
 	// Aliases
-	BackgroundWhite = BackgroundLightGray
-	BackgroundGray  = BackgroundLightGray
+	BackgroundWhite  = BackgroundLightGray
+	BackgroundGray   = BackgroundLightGray
+	BackgroundPurple = BackgroundMagenta
 
 	// Default colors (usually gray)
 	Default           = NewAttributeColor("39")
@@ -82,6 +86,8 @@ var (
 		"Blue":         Blue,
 		"magenta":      Magenta,
 		"Magenta":      Magenta,
+		"purple":       Magenta,
+		"Purple":       Magenta,
 		"cyan":         Cyan,
 		"Cyan":         Cyan,
 		"gray":         DarkGray,
@@ -98,6 +104,8 @@ var (
 		"DarkBlue":     Blue,
 		"darkmagenta":  Magenta,
 		"DarkMagenta":  Magenta,
+		"darkpurple":   Magenta,
+		"DarkPurple":   Magenta,
 		"darkcyan":     Cyan,
 		"DarkCyan":     Cyan,
 		"darkgray":     DarkGray,
@@ -112,6 +120,8 @@ var (
 		"LightBlue":    LightBlue,
 		"lightmagenta": LightMagenta,
 		"LightMagenta": LightMagenta,
+		"lightpurple":  LightMagenta,
+		"LightPurple":  LightMagenta,
 		"lightcyan":    LightCyan,
 		"LightCyan":    LightCyan,
 		"lightgray":    LightGray,
@@ -131,6 +141,8 @@ var (
 		"Blue":         LightBlue,
 		"magenta":      LightMagenta,
 		"Magenta":      LightMagenta,
+		"purple":       LightMagenta,
+		"Purple":       LightMagenta,
 		"cyan":         LightCyan,
 		"Cyan":         LightCyan,
 		"gray":         LightGray,
@@ -147,6 +159,8 @@ var (
 		"LightBlue":    LightBlue,
 		"lightmagenta": LightMagenta,
 		"LightMagenta": LightMagenta,
+		"lightpurple":  LightMagenta,
+		"LightPurple":  LightMagenta,
 		"lightcyan":    LightCyan,
 		"LightCyan":    LightCyan,
 		"lightgray":    LightGray,
@@ -161,6 +175,8 @@ var (
 		"DarkBlue":     Blue,
 		"darkmagenta":  Magenta,
 		"DarkMagenta":  Magenta,
+		"darkpurple":   Magenta,
+		"DarkPurple":   Magenta,
 		"darkcyan":     Cyan,
 		"DarkCyan":     Cyan,
 		"darkgray":     DarkGray,
@@ -194,7 +210,7 @@ func s2b(attribute string) byte {
 		return 33
 	case "Blue", "blue":
 		return 34
-	case "Magenta", "magenta":
+	case "Magenta", "magenta", "Purple", "purple":
 		return 35
 	case "Cyan", "cyan":
 		return 36
@@ -309,9 +325,14 @@ func Stop() string {
 	return NoColor()
 }
 
-// Use this color to output the given text. Will reset the attributes at the end of the string.
+// Use this color to output the given text. Will reset the attributes at the end of the string. Outputs a newline.
 func (ac AttributeColor) Output(text string) {
 	fmt.Println(ac.Get(text))
+}
+
+// Same as output, but outputs to stderr instead of stdout
+func (ac AttributeColor) Error(text string) {
+	fmt.Fprintln(os.Stderr, ac.Get(text))
 }
 
 func (ac AttributeColor) Combine(other AttributeColor) AttributeColor {
