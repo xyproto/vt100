@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"github.com/xyproto/vt100"
 )
 
@@ -33,7 +32,7 @@ func NewBullet(x, y, vx, vy int) *Bullet {
 func (b *Bullet) ToggleColor() {
 	c1 := vt100.LightGreen
 	c2 := vt100.LightBlue
-	if bytes.Equal(b.color, c1) {
+	if b.color.Equal(c1) {
 		b.color = c2
 	} else {
 		b.color = c1

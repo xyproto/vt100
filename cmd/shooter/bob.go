@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"github.com/xyproto/vt100"
 )
 
@@ -28,7 +27,7 @@ func NewBob() *Bob {
 func (b *Bob) ToggleColor() {
 	c1 := vt100.LightRed
 	c2 := vt100.LightYellow
-	if bytes.Equal(b.color, c1) {
+	if b.color.Equal(c1) {
 		b.color = c2
 	} else {
 		b.color = c1
