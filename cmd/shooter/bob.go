@@ -1,16 +1,17 @@
 package main
 
 import (
+	"bytes"
 	"github.com/xyproto/vt100"
 )
 
 const bobEraseChar = ' ' // for erasing when moving
 
 type Bob struct {
-	x, y       int    // current position
-	oldx, oldy int    // previous position
-	state      rune   // looks
-	color      string // foreground color
+	x, y       int                  // current position
+	oldx, oldy int                  // previous position
+	state      rune                 // looks
+	color      vt100.AttributeColor // foreground color
 }
 
 func NewBob() *Bob {
@@ -20,14 +21,14 @@ func NewBob() *Bob {
 		oldx:  10,
 		oldy:  10,
 		state: 'o',
-		color: "Yellow",
+		color: vt100.LightYellow,
 	}
 }
 
 func (b *Bob) ToggleColor() {
-	const c1 = "Red"
-	const c2 = "Yellow"
-	if b.color == c1 {
+	c1 := vt100.LightRed
+	c2 := vt100.LightYellow
+	if bytes.Equal(b.color, c1) {
 		b.color = c2
 	} else {
 		b.color = c1
@@ -45,7 +46,7 @@ func (b *Bob) ToggleState() {
 }
 
 func (b *Bob) Draw(c *vt100.Canvas) {
-	c.PlotC(uint(b.x), uint(b.y), b.color, b.state)
+	c.PlotColor(uint(b.x), uint(b.y), b.color, b.state)
 }
 
 func (b *Bob) Right(c *vt100.Canvas) bool {
@@ -96,5 +97,5 @@ func (b *Bob) Down(c *vt100.Canvas) bool {
 
 // Terminal was resized
 func (b *Bob) Resize() {
-	b.color = "Magenta"
+	b.color = vt100.LightMagenta
 }

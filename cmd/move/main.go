@@ -36,7 +36,7 @@ func (b *Bob) ToggleState() {
 }
 
 func (b *Bob) Draw(c *vt100.Canvas) {
-	c.PlotC(uint(b.x), uint(b.y), b.color, b.state)
+	c.PlotColor(uint(b.x), uint(b.y), vt100.LightColorMap[b.color], b.state)
 }
 
 func (b *Bob) Right(c *vt100.Canvas) bool {

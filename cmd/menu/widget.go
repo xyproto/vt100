@@ -60,7 +60,7 @@ func (m *MenuWidget) Draw(c *vt100.Canvas) {
 	// Draw the title
 	titleHeight := 2
 	for x, r := range m.title {
-		c.PlotC(uint(m.marginLeft+x), uint(m.marginTop), m.titleColor, r)
+		c.PlotColor(uint(m.marginLeft+x), uint(m.marginTop), vt100.LightColorMap[m.titleColor], r)
 	}
 	// Draw the menu entries, with various colors
 	ulenChoices := uint(len(m.choices))
@@ -75,11 +75,11 @@ func (m *MenuWidget) Draw(c *vt100.Canvas) {
 				r = []rune(itemString)[x]
 			}
 			if x < 2 {
-				c.PlotC(uint(m.marginLeft+int(x)), uint(m.marginTop+int(y)+titleHeight), "Blue", r)
+				c.PlotColor(uint(m.marginLeft+int(x)), uint(m.marginTop+int(y)+titleHeight), vt100.LightBlue, r)
 			} else if y == m.y {
-				c.PlotC(uint(m.marginLeft+int(x)), uint(m.marginTop+int(y)+titleHeight), m.hi, r)
+				c.PlotColor(uint(m.marginLeft+int(x)), uint(m.marginTop+int(y)+titleHeight), vt100.LightColorMap[m.hi], r)
 			} else {
-				c.PlotC(uint(m.marginLeft+int(x)), uint(m.marginTop+int(y)+titleHeight), m.fg, r)
+				c.PlotColor(uint(m.marginLeft+int(x)), uint(m.marginTop+int(y)+titleHeight), vt100.LightColorMap[m.fg], r)
 			}
 		}
 	}

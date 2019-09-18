@@ -1,18 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"github.com/xyproto/vt100"
 )
 
 const bulletEraseChar = ' ' // for erasing when moving
 
 type Bullet struct {
-	x, y       int    // current position
-	oldx, oldy int    // previous position
-	vx, vy     int    // velocity
-	state      rune   // looks
-	color      string // foreground color
-	stopped    bool   // is the movement stopped?
+	x, y       int                  // current position
+	oldx, oldy int                  // previous position
+	vx, vy     int                  // velocity
+	state      rune                 // looks
+	color      vt100.AttributeColor // foreground color
+	stopped    bool                 // is the movement stopped?
 }
 
 func NewBullet(x, y, vx, vy int) *Bullet {
@@ -24,15 +25,15 @@ func NewBullet(x, y, vx, vy int) *Bullet {
 		vx:      vx,
 		vy:      vy,
 		state:   '×',
-		color:   "Blue",
+		color:   vt100.LightBlue,
 		stopped: false,
 	}
 }
 
 func (b *Bullet) ToggleColor() {
-	const c1 = "Green"
-	const c2 = "Blue"
-	if b.color == c1 {
+	c1 := vt100.LightGreen
+	c2 := vt100.LightBlue
+	if bytes.Equal(b.color, c1) {
 		b.color = c2
 	} else {
 		b.color = c1
@@ -50,7 +51,7 @@ func (b *Bullet) ToggleState() {
 }
 
 func (b *Bullet) Draw(c *vt100.Canvas) {
-	c.PlotC(uint(b.x), uint(b.y), b.color, b.state)
+	c.PlotColor(uint(b.x), uint(b.y), b.color, b.state)
 }
 
 // Next moves the object to the next position, and returns true if it moved

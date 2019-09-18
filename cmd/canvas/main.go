@@ -15,8 +15,8 @@ func main() {
 	c.Plot(10, 10, '!')
 	c.Write(12, 12, vt100.LightGreen, vt100.BackgroundDefault, "hi")
 	c.Write(15, 15, vt100.White, vt100.BackgroundMagenta, "floating")
-	c.PlotC(12, 17, "Red", '*')
-	c.PlotC(10, 20, "Blue", '?')
+	c.PlotColor(12, 17, vt100.LightRed, '*')
+	c.PlotColor(10, 20, vt100.LightBlue, '?')
 
 	c.Draw()
 	vt100.WaitForKey()
