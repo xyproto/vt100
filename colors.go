@@ -120,8 +120,8 @@ var (
 	}
 
 	LightColorMap = map[string]AttributeColor{
-		"black":        DarkGray,
-		"Black":        DarkGray,
+		"black":        Black,
+		"Black":        Black,
 		"red":          LightRed,
 		"Red":          LightRed,
 		"green":        LightGreen,
@@ -167,6 +167,7 @@ var (
 		"darkgray":     DarkGray,
 		"DarkGray":     DarkGray,
 	}
+
 )
 
 func s2b(attribute string) byte {
