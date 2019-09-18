@@ -167,7 +167,6 @@ var (
 		"darkgray":     DarkGray,
 		"DarkGray":     DarkGray,
 	}
-
 )
 
 func s2b(attribute string) byte {
@@ -283,7 +282,7 @@ func b2s(b byte) string {
 func (ac AttributeColor) String() string {
 	attributeString := strings.Join(mapBS(ac, b2s), ";")
 	// Replace '{attr1};...;{attrn}' with the generated attribute string and return
-	return get(specVT100, "Set Attribute Mode", map[string]string{"{attr1};...;{attrn}": attributeString}, false)
+	return get(specVT100, "Set Attribute Mode", map[string]string{"{attr1};...;{attrn}": attributeString})
 }
 
 // Get the full string needed for outputting colored texti, with the text and stopping the color attribute
