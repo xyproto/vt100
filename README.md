@@ -35,7 +35,7 @@ A physical VT100 terminal. Photo by [Jason Scott](https://www.flickr.com/photos/
 Output "hi" in blue:
 
 ```go
-fmt.Println(vt100.BrightColor("hi", "Blue"))
+vt100.Blue.Output("hi")
 ```
 
 Erase the current line:
