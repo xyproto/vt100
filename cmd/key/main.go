@@ -8,13 +8,13 @@ import (
 
 func main() {
 	escCount := 0
-	r, err := vt100.NewTTY()
+	tty, err := vt100.NewTTY()
 	if err != nil {
 		panic(err)
 	}
-	r.SetTimeout(10 * time.Millisecond)
+	tty.SetTimeout(10 * time.Millisecond)
 	for {
-		key := r.Key()
+		key := tty.Key()
 		if key != 0 {
 			fmt.Println(key)
 		}
@@ -30,5 +30,5 @@ func main() {
 			break
 		}
 	}
-	r.Close()
+	tty.Close()
 }
