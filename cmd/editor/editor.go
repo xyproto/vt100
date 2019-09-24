@@ -10,14 +10,23 @@ import (
 
 type Editor struct {
 	lines      map[uint][]rune
-	insertmode bool
+	insertMode bool
 	changed    bool
 }
 
 func NewEditor() *Editor {
 	e := &Editor{}
 	e.lines = make(map[uint][]rune)
+	e.insertMode = true
 	return e
+}
+
+func (e *Editor) InsertMode() bool {
+	return e.insertMode
+}
+
+func (e *Editor) ToggleInsertMode() {
+	e.insertMode = !e.insertMode
 }
 
 func (e *Editor) Set(x, y uint, r rune) {

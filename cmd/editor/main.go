@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const spacesPerTab = 4
+
 type Cursor struct {
 	X, Y int
 }
@@ -67,26 +69,32 @@ func main() {
 	for !quit {
 		key := tty.Key()
 		switch key {
+		case 27:
+			e.ToggleInsertMode()
 		case 17:
 			quit = true
 		case 37:
-			if cursor.X >= 4 && e.Get(uint(cursor.X-4), uint(cursor.Y)) == '\t' {
-				cursor.X -= 4
+			// left arrow
+			if cursor.X >= spacesPerTab && e.Get(uint(cursor.X-spacesPerTab), uint(cursor.Y)) == '\t' {
+				cursor.X -= spacesPerTab
 			} else {
 				cursor.X--
 			}
 			cursor.Wrap(c)
 		case 38:
+			// up arrow
 			cursor.Y--
 			cursor.Wrap(c)
 		case 39:
+			// right arrow
 			if e.Get(uint(cursor.X), uint(cursor.Y)) == '\t' {
-				cursor.X += 4
+				cursor.X += spacesPerTab
 			} else {
 				cursor.X++
 			}
 			cursor.Wrap(c)
 		case 40:
+			// down arrow
 			cursor.Y++
 			cursor.Wrap(c)
 		default:
@@ -114,7 +122,7 @@ func main() {
 					cursor.Y--
 				} else {
 					if e.Get(uint(cursor.X), uint(cursor.Y)) == '\t' {
-						cursor.X -= 4
+						cursor.X -= spacesPerTab
 					} else {
 						cursor.X--
 					}
@@ -126,7 +134,7 @@ func main() {
 				// tab
 				c.Write(uint(cursor.X), uint(cursor.Y), vt100.White, vt100.BackgroundBlue, "    ")
 				e.Set(uint(cursor.X), uint(cursor.Y), '\t')
-				cursor.X += 4
+				cursor.X += spacesPerTab
 				cursor.Wrap(c)
 			} else if key == 19 {
 				// ctrl-s, save
