@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/xyproto/vt100"
 	"os"
-	"time"
 	"strings"
+	"time"
 )
 
 const spacesPerTab = 4
@@ -23,9 +23,8 @@ func (sb *StatusBar) SetMessage(msg string) {
 	sb.msg = msg
 }
 
-func (sb *StatusBar) Clear(c *vt100.Canvas) {
-	c.Write((c.W()-uint(len(sb.msg)))/2, c.H()-1, vt100.LightGreen, vt100.Default, strings.Repeat(" ", len(sb.msg)))
-	sb.msg = ""
+func (sb *StatusBar) Clear() {
+	sb.msg = strings.Repeat(" ", len(sb.msg))
 }
 
 type Cursor struct {
@@ -139,7 +138,9 @@ func main() {
 			// Move the screen cursor
 			if screenCursor.Y == 0 {
 				// If at the top, don't move up, but scroll the contents
-				status.SetMessage("reached top")
+				status.Clear()
+				status.Draw(c)
+				status.SetMessage("reached top of screen")
 				status.Draw(c)
 			} else {
 				screenCursor.Y--
@@ -152,7 +153,9 @@ func main() {
 			// Move the screen cursor
 			if screenCursor.Y == int(c.H()-1) {
 				// If at the bottom, don't move down, but scroll the contents
-				status.SetMessage("reached bottom")
+				status.Clear()
+				status.Draw(c)
+				status.SetMessage("reached bottom of screen")
 				status.Draw(c)
 			} else {
 				screenCursor.Y++
