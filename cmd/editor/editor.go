@@ -81,6 +81,26 @@ func (e *Editor) Line(n uint) string {
 	return ""
 }
 
+// LastPosition returns the last X index for this line
+// Can be negative, if the line is empty.
+func (e *Editor) LastPosition(n uint) int {
+	return len(e.Line(n)) - 1
+}
+
+// For a given line index, count the number of given runes
+func (e *Editor) Count(n uint, r rune) uint {
+	var counter uint
+	line, ok := e.lines[n]
+	if ok {
+		for _, l := range line {
+			if l == r {
+				counter++
+			}
+		}
+	}
+	return counter
+}
+
 // Len returns the number of lines
 func (e *Editor) Len() uint {
 	maxy := uint(0)

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/xyproto/vt100"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -96,16 +95,28 @@ func main() {
 			screenCursor.Wrap(c)
 		case 39: // right arrow
 			atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
-			// Move the data cursor
-			dataCursor.X++
-			dataCursor.Wrap(c)
-			// Move the screen cursor
-			if atTab && uint(screenCursor.X) < (c.Width()-spacesPerTab) {
-				screenCursor.X += spacesPerTab
+			atEnd := dataCursor.X >= e.LastPosition(uint(dataCursor.Y))
+			if atEnd {
+				// Move the data cursor
+				dataCursor.X = 0
+				dataCursor.Y++
+				dataCursor.Wrap(c)
+				// Move the screen cursor
+				screenCursor.X = 0
+				screenCursor.Y++
+				screenCursor.Wrap(c)
 			} else {
-				screenCursor.X++
+				// Move the data cursor
+				dataCursor.X++
+				dataCursor.Wrap(c)
+				// Move the screen cursor
+				if atTab && uint(screenCursor.X) < (c.Width()-spacesPerTab) {
+					screenCursor.X += spacesPerTab
+				} else {
+					screenCursor.X++
+				}
+				screenCursor.Wrap(c)
 			}
-			screenCursor.Wrap(c)
 		case 40: // down arrow
 			// Move the data cursor
 			dataCursor.Y++
@@ -177,12 +188,10 @@ func main() {
 				dataCursor.X = 0
 				screenCursor.X = 0
 			} else if key == 5 { // ctrl-e, end
-				currentLine := e.Line(uint(dataCursor.Y))
-				currentLineLength := uint(len(currentLine))
-				lastPosition := currentLineLength - 1
+				lastPosition := e.LastPosition(uint(dataCursor.Y))
 				dataCursor.X = int(lastPosition)
-				tabCount := uint(strings.Count(currentLine, "\t"))
-				screenCursor.X = int(tabCount*spacesPerTab + (lastPosition - tabCount))
+				tabCount := e.Count(uint(dataCursor.Y), '\t')
+				screenCursor.X = int(tabCount)*int(spacesPerTab) + (lastPosition - int(tabCount))
 			} else if key == 19 { // ctrl-s, save
 				err := e.Save(filename)
 				if err != nil {
