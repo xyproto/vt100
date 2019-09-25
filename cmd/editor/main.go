@@ -6,9 +6,27 @@ import (
 	"github.com/xyproto/vt100"
 	"os"
 	"time"
+	"strings"
 )
 
 const spacesPerTab = 4
+
+type StatusBar struct {
+	msg string
+}
+
+func (sb *StatusBar) Draw(c *vt100.Canvas) {
+	c.Write((c.W()-uint(len(sb.msg)))/2, c.H()-1, vt100.LightGreen, vt100.Default, sb.msg)
+}
+
+func (sb *StatusBar) SetMessage(msg string) {
+	sb.msg = msg
+}
+
+func (sb *StatusBar) Clear(c *vt100.Canvas) {
+	c.Write((c.W()-uint(len(sb.msg)))/2, c.H()-1, vt100.LightGreen, vt100.Default, strings.Repeat(" ", len(sb.msg)))
+	sb.msg = ""
+}
 
 type Cursor struct {
 	X, Y int
@@ -22,7 +40,6 @@ func (cur *Cursor) Wrap(c *vt100.Canvas) {
 	}
 	if cur.Y < 0 {
 		cur.Y = 0
-		c.Write(20, 20, vt100.LightGreen, vt100.Default, "SCROLL UP   ")
 	}
 	if cur.X >= int(w) {
 		cur.X = 0
@@ -30,7 +47,6 @@ func (cur *Cursor) Wrap(c *vt100.Canvas) {
 	}
 	if cur.Y >= int(h) {
 		cur.Y = int(h)
-		c.Write(20, 20, vt100.LightGreen, vt100.Default, "SCROLL DOWN")
 	}
 }
 
@@ -56,6 +72,8 @@ func main() {
 		e.WriteLines(c, 0, h, 0, 0)
 	}
 
+	status := &StatusBar{}
+
 	c.Draw()
 
 	screenCursor := &Cursor{}
@@ -75,24 +93,21 @@ func main() {
 		case 17: // ctrl-q
 			quit = true
 		case 37: // left arrow
-			atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
-			// Move the data cursor
-			dataCursor.X--
-			dataCursor.Wrap(c)
-			// Move the screen cursor
-			if atTab && screenCursor.X >= spacesPerTab {
-				screenCursor.X -= spacesPerTab
-			} else {
-				screenCursor.X--
+			atStart := dataCursor.X == 0 && dataCursor.Y == 0
+			if !atStart {
+				// Move the data cursor
+				dataCursor.X--
+				dataCursor.Wrap(c)
+				// Check if we hit a tab character
+				atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
+				// Move the screen cursor
+				if atTab && screenCursor.X >= spacesPerTab {
+					screenCursor.X -= spacesPerTab
+				} else {
+					screenCursor.X--
+				}
+				screenCursor.Wrap(c)
 			}
-			screenCursor.Wrap(c)
-		case 38: // up arrow
-			// Move the data cursor
-			dataCursor.Y--
-			dataCursor.Wrap(c)
-			// Move the screen cursor
-			screenCursor.Y--
-			screenCursor.Wrap(c)
 		case 39: // right arrow
 			atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
 			atEnd := dataCursor.X >= e.LastPosition(uint(dataCursor.Y))
@@ -117,13 +132,32 @@ func main() {
 				}
 				screenCursor.Wrap(c)
 			}
+		case 38: // up arrow
+			// Move the data cursor
+			dataCursor.Y--
+			dataCursor.Wrap(c)
+			// Move the screen cursor
+			if screenCursor.Y == 0 {
+				// If at the top, don't move up, but scroll the contents
+				status.SetMessage("reached top")
+				status.Draw(c)
+			} else {
+				screenCursor.Y--
+				screenCursor.Wrap(c)
+			}
 		case 40: // down arrow
 			// Move the data cursor
 			dataCursor.Y++
 			dataCursor.Wrap(c)
 			// Move the screen cursor
-			screenCursor.Y++
-			screenCursor.Wrap(c)
+			if screenCursor.Y == int(c.H()-1) {
+				// If at the bottom, don't move down, but scroll the contents
+				status.SetMessage("reached bottom")
+				status.Draw(c)
+			} else {
+				screenCursor.Y++
+				screenCursor.Wrap(c)
+			}
 		default:
 			if key == 32 { // space
 				// Data cursor
@@ -131,7 +165,7 @@ func main() {
 				dataCursor.X++
 				dataCursor.Wrap(c)
 				// Screen cursor
-				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.White, vt100.BackgroundBlue, ' ')
+				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.LightYellow, vt100.BackgroundBlue, ' ')
 				screenCursor.X++
 				screenCursor.Wrap(c)
 			} else if key == 13 { // return
@@ -150,7 +184,7 @@ func main() {
 				dataCursor.X++
 				dataCursor.Wrap(c)
 				// Screen cursor
-				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.White, vt100.BackgroundBlue, rune(key))
+				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.LightYellow, vt100.BackgroundBlue, rune(key))
 				screenCursor.X++
 				screenCursor.Wrap(c)
 			} else if key == 127 { // backspace
@@ -174,14 +208,14 @@ func main() {
 					}
 				}
 				screenCursor.Wrap(c)
-				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.White, vt100.BackgroundBlue, ' ')
+				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.LightYellow, vt100.BackgroundBlue, ' ')
 			} else if key == 9 { // tab
 				// Data cursor
 				e.Set(uint(dataCursor.X), uint(dataCursor.Y), '\t')
 				dataCursor.X++
 				dataCursor.Wrap(c)
 				// Screen cursor
-				c.Write(uint(screenCursor.X), uint(screenCursor.Y), vt100.White, vt100.BackgroundBlue, "    ")
+				c.Write(uint(screenCursor.X), uint(screenCursor.Y), vt100.LightYellow, vt100.BackgroundBlue, "    ")
 				screenCursor.X += spacesPerTab
 				screenCursor.Wrap(c)
 			} else if key == 1 { // ctrl-a, home
@@ -201,7 +235,7 @@ func main() {
 					os.Exit(1)
 				}
 			} else if key != 0 { // any other key
-				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.White, vt100.BackgroundBlue, rune(key))
+				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.LightYellow, vt100.BackgroundBlue, rune(key))
 				e.Set(uint(screenCursor.X), uint(screenCursor.Y), rune(key))
 				screenCursor.X++
 				screenCursor.Wrap(c)
@@ -214,5 +248,6 @@ func main() {
 	}
 	tty.Close()
 	vt100.Close()
-	vt100.BackgroundDefault.Combine(vt100.LightBlue).Output("bye!")
+	vt100.Clear()
+	vt100.LightBlue.Output("bye!")
 }
