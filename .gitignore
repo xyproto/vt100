@@ -16,4 +16,4 @@ cmd/blink/blink
 cmd/bg/bg
 cmd/ok/ok
 cmd/widget/widget
-cmd/et/et
+cmd/editor/editor
