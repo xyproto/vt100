@@ -81,6 +81,14 @@ func (c *Canvas) Size() (uint, uint) {
 	return c.w, c.h
 }
 
+func (c *Canvas) Width() uint {
+	return c.w
+}
+
+func (c *Canvas) Height() uint {
+	return c.h
+}
+
 func umin(a, b uint) uint {
 	if a < b {
 		return a
