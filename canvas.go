@@ -251,7 +251,9 @@ func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, s rune) {
 	c.mut.Unlock()
 }
 
-// Write will write a string to the canvas, without conversion of the background color bg to a background color (use bg.Background()). Beware that strings that consists of multi-byte runes may not be written correctly! For those cases, use WriteRune instead.
+// Write will write a string to the canvas. Beware that strings that consists
+// of multi-byte runes may not be written correctly! For those cases, use
+// WriteRune instead.
 func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 	if x < 0 || y < 0 {
 		return
@@ -263,20 +265,19 @@ func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 	c.mut.Lock()
 	chars := (*c).chars
 	lenchars := uint(len(chars))
-	//converted := bg.Background()
 	for si, r := range s {
 		i := index + uint(si)
 		if i < lenchars {
 			chars[i].s = r
 			chars[i].fg = fg
-			chars[i].bg = bg
+			chars[i].bg = bg.Background()
 			chars[i].drawn = false
 		}
 	}
 	c.mut.Unlock()
 }
 
-// WriteRune will write a colored rune to the canvas, without conversion of the bg color to a background color (use bg.Background()).
+// WriteRune will write a colored rune to the canvas
 func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
 	if x < 0 || y < 0 {
 		return
@@ -289,7 +290,7 @@ func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
 	chars := (*c).chars
 	chars[index].s = r
 	chars[index].fg = fg
-	chars[index].bg = bg
+	chars[index].bg = bg.Background()
 	chars[index].drawn = false
 	c.mut.Unlock()
 }
