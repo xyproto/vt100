@@ -12,10 +12,10 @@ func main() {
 
 	var (
 		// These are used for initializing various structs
-		editorForeground = vt100.LightYellow
-		editorBackground = vt100.BackgroundBlue
-		floatForeground  = vt100.LightGreen
-		floatBackground  = vt100.BackgroundBlack
+		editorForeground = vt100.Blue
+		editorBackground = vt100.BackgroundGray
+		floatForeground  = vt100.Red
+		floatBackground  = vt100.BackgroundGray
 		statusForeground = vt100.Red
 		statusBackground = vt100.BackgroundBlack
 
@@ -120,11 +120,17 @@ func main() {
 			if atEnd && e.EOLMode() {
 				// Move the data cursor
 				dataCursor.X = 0
-				dataCursor.Y++
+
+				if dataCursor.Y < e.Len() {
+					dataCursor.Y++
+					screenCursor.Y++
+				} else {
+					status.SetMessage("end of text")
+					status.Show(c)
+				}
 				dataCursor.Wrap(c)
 				// Move the screen cursor
 				screenCursor.X = 0
-				screenCursor.Y++
 				screenCursor.Wrap(c)
 			} else {
 				// Move the data cursor
@@ -185,6 +191,9 @@ func main() {
 						screenCursor.X = int(e.LastScreenPosition(int(dataCursor.Y), int(e.spacesPerTab))) + 1
 					}
 				}
+			} else if e.EOLMode() {
+				status.SetMessage("end of text")
+				status.Show(c)
 			}
 			// If the cursor is after the length of the current line, move it to the end of the current line
 			if e.EOLMode() {
