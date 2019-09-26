@@ -9,7 +9,7 @@ import (
 )
 
 type Editor struct {
-	lines        map[uint][]rune
+	lines        map[int][]rune
 	insertMode   bool
 	changed      bool
 	fg           vt100.AttributeColor
@@ -19,7 +19,7 @@ type Editor struct {
 
 func NewEditor(spacesPerTab int) *Editor {
 	e := &Editor{}
-	e.lines = make(map[uint][]rune)
+	e.lines = make(map[int][]rune)
 	e.insertMode = true
 	e.fg = vt100.LightYellow
 	e.bg = vt100.BackgroundDefault
@@ -35,28 +35,28 @@ func (e *Editor) ToggleInsertMode() {
 	e.insertMode = !e.insertMode
 }
 
-func (e *Editor) Set(x, y uint, r rune) {
+func (e *Editor) Set(x, y int, r rune) {
 	if e.lines == nil {
-		e.lines = make(map[uint][]rune)
+		e.lines = make(map[int][]rune)
 	}
 	_, ok := e.lines[y]
 	if !ok {
 		e.lines[y] = make([]rune, 0, x+1)
 	}
-	if x < uint(len(e.lines[y])) {
+	if x < int(len(e.lines[y])) {
 		e.lines[y][x] = r
 		e.changed = true
 		return
 	}
 	// If the line is too short, fill it up with spaces
-	for x >= uint(len(e.lines[y])) {
+	for x >= int(len(e.lines[y])) {
 		e.lines[y] = append(e.lines[y], ' ')
 	}
 	e.lines[y][x] = r
 	e.changed = true
 }
 
-func (e *Editor) Get(x, y uint) rune {
+func (e *Editor) Get(x, y int) rune {
 	if e.lines == nil {
 		return ' '
 	}
@@ -64,7 +64,7 @@ func (e *Editor) Get(x, y uint) rune {
 	if !ok {
 		return ' '
 	}
-	if x >= uint(len(runes)) {
+	if x >= int(len(runes)) {
 		return ' '
 	}
 	return runes[x]
@@ -75,7 +75,7 @@ func (e *Editor) Changed() bool {
 }
 
 // Line returns the contents of line number N, counting from 0
-func (e *Editor) Line(n uint) string {
+func (e *Editor) Line(n int) string {
 	line, ok := e.lines[n]
 	if ok {
 		var sb strings.Builder
@@ -89,20 +89,20 @@ func (e *Editor) Line(n uint) string {
 
 // LastDataPosition returns the last X index for this line, for the data (does not expand tabs)
 // Can be negative, if the line is empty.
-func (e *Editor) LastDataPosition(n uint) int {
+func (e *Editor) LastDataPosition(n int) int {
 	return len(e.Line(n)) - 1
 }
 
 // LastScreenPosition returns the last X index for this line, for the screen (expands tabs)
 // Can be negative, if the line is empty.
-func (e *Editor) LastScreenPosition(n, spacesPerTab uint) int {
+func (e *Editor) LastScreenPosition(n, spacesPerTab int) int {
 	extraSpaceBecauseOfTabs := int(e.Count(n, '\t') * (spacesPerTab - 1))
 	return e.LastDataPosition(n) + extraSpaceBecauseOfTabs
 }
 
 // For a given line index, count the number of given runes
-func (e *Editor) Count(n uint, r rune) uint {
-	var counter uint
+func (e *Editor) Count(n int, r rune) int {
+	var counter int
 	line, ok := e.lines[n]
 	if ok {
 		for _, l := range line {
@@ -115,9 +115,9 @@ func (e *Editor) Count(n uint, r rune) uint {
 }
 
 // Len returns the number of lines
-func (e *Editor) Len() uint {
-	maxy := uint(0)
-	for y, _ := range e.lines {
+func (e *Editor) Len() int {
+	maxy := 0
+	for y := range e.lines {
 		if y > maxy {
 			maxy = y
 		}
@@ -128,14 +128,14 @@ func (e *Editor) Len() uint {
 // String returns the contents of the editor
 func (e *Editor) String() string {
 	var sb strings.Builder
-	for i := uint(0); i < e.Len(); i++ {
+	for i := 0; i < e.Len(); i++ {
 		sb.WriteString(e.Line(i) + "\n")
 	}
 	return sb.String()
 }
 
 func (e *Editor) Clear() {
-	e.lines = make(map[uint][]rune)
+	e.lines = make(map[int][]rune)
 }
 
 func (e *Editor) Load(filename string) error {
@@ -148,7 +148,7 @@ func (e *Editor) Load(filename string) error {
 	for y, dataline := range datalines {
 		line := string(dataline)
 		for x, letter := range line {
-			e.Set(uint(x), uint(y), letter)
+			e.Set(int(x), int(y), letter)
 		}
 	}
 	return nil
@@ -159,33 +159,35 @@ func (e *Editor) Save(filename string) error {
 }
 
 // Write editor lines from "fromline" to and up to "toline" to the canvas at cx, cy
-func (e *Editor) WriteLines(c *vt100.Canvas, fromline, toline, cx, cy uint) error {
-	w, _ := c.Size()
+func (e *Editor) WriteLines(c *vt100.Canvas, fromline, toline, cx, cy int) error {
+	w := int(c.Width())
 	if fromline >= toline {
 		return errors.New("fromline >= toline in WriteLines")
 	}
-	for y := fromline; y < toline; y++ {
-		counter := uint(0)
-		for _, letter := range e.Line(y) {
+	numlines := toline - fromline
+	offset := fromline
+	for y := 0; y < numlines; y++ {
+		counter := 0
+		for _, letter := range e.Line(y + offset) {
 			if letter == '\t' {
-				c.Write(cx+counter, cy+y, vt100.White, vt100.BackgroundBlue, "    ")
+				c.Write(uint(cx+counter), uint(cy+y), vt100.White, vt100.BackgroundBlue, "    ")
 				counter += 4
 			} else {
-				c.WriteRune(cx+counter, cy+y, vt100.White, vt100.BackgroundBlue, letter)
+				c.WriteRune(uint(cx+counter), uint(cy+y), vt100.White, vt100.BackgroundBlue, letter)
 				counter++
 			}
 		}
 		// Fill the rest of the line on the canvas with "blanks"
 		for x := counter; x < w; x++ {
-			c.WriteRune(cx+x, cy+y, vt100.White, vt100.BackgroundBlue, ' ')
+			c.WriteRune(uint(cx+x), uint(cy+y), vt100.White, vt100.BackgroundBlue, ' ')
 		}
 	}
 	return nil
 }
 
-func (e *Editor) CreateLineIfMissing(n uint) {
+func (e *Editor) CreateLineIfMissing(n int) {
 	if e.lines == nil {
-		e.lines = make(map[uint][]rune)
+		e.lines = make(map[int][]rune)
 	}
 	_, ok := e.lines[n]
 	if !ok {

@@ -20,7 +20,8 @@ func NewStatusBar() *StatusBar {
 }
 
 func (sb *StatusBar) Draw(c *vt100.Canvas) {
-	c.Write((c.W()-uint(len(sb.msg)))/2, c.H()-1, sb.fg, sb.bg, sb.msg)
+	w := int(c.W())
+	c.Write(uint((w-len(sb.msg))/2), c.H()-1, sb.fg, sb.bg, sb.msg)
 }
 
 func (sb *StatusBar) SetMessage(msg string) {
@@ -71,9 +72,12 @@ func main() {
 	if filename != "" {
 		e.Load(filename)
 		// Draw editor lines from line 0 up to h onto the canvas at 0,0
-		_, h := c.Size()
+		h := int(c.Height())
 		e.WriteLines(c, 0, h, 0, 0)
 	}
+
+	scrolled := false
+	offset := 0
 
 	status := &StatusBar{}
 	c.Draw()
@@ -101,17 +105,17 @@ func main() {
 				// Move the data cursor
 				if atStart {
 					dataCursor.Y--
-					dataCursor.X = e.LastDataPosition(uint(dataCursor.Y))
+					dataCursor.X = e.LastDataPosition(int(dataCursor.Y))
 				} else {
 					dataCursor.X--
 				}
 				dataCursor.Wrap(c)
 				if atStart {
 					screenCursor.Y--
-					screenCursor.X = e.LastScreenPosition(uint(dataCursor.Y), uint(e.spacesPerTab))
+					screenCursor.X = e.LastScreenPosition(int(dataCursor.Y), int(e.spacesPerTab))
 				} else {
 					// Check if we hit a tab character
-					atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
+					atTab := '\t' == e.Get(int(dataCursor.X), int(dataCursor.Y))
 					// Move the screen cursor
 					if atTab && screenCursor.X >= e.spacesPerTab {
 						screenCursor.X -= e.spacesPerTab
@@ -122,8 +126,8 @@ func main() {
 				screenCursor.Wrap(c)
 			}
 		case 39: // right arrow
-			atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
-			atEnd := dataCursor.X >= e.LastDataPosition(uint(dataCursor.Y))
+			atTab := '\t' == e.Get(int(dataCursor.X), int(dataCursor.Y))
+			atEnd := dataCursor.X >= e.LastDataPosition(int(dataCursor.Y))
 			if atEnd {
 				// Move the data cursor
 				dataCursor.X = 0
@@ -175,10 +179,45 @@ func main() {
 				screenCursor.Y++
 				screenCursor.Wrap(c)
 			}
+		case 14: // ctrl-n, scroll down
+			if dataCursor.Y >= e.Len()-int(c.H()) {
+				// Status message
+				status.Clear()
+				status.Draw(c)
+				status.SetMessage("EOF")
+				status.Draw(c)
+				c.Draw()
+			} else {
+				// Only move the data cursor down one line, not the screen cursor
+				dataCursor.Y++
+				dataCursor.Wrap(c)
+				// Move the scroll offset
+				offset++
+				// Prepare to redraw
+				scrolled = true
+			}
+		case 16: // ctrl-p, scroll up
+			if dataCursor.Y == 0 {
+				// Can't scroll further up
+				// Status message
+				status.Clear()
+				status.Draw(c)
+				status.SetMessage("at top")
+				status.Draw(c)
+				c.Draw()
+			} else {
+				// Only move the data cursor up one line, not the screen cursor
+				dataCursor.Y--
+				dataCursor.Wrap(c)
+				// Move the scroll offset
+				offset--
+				// Prepare to redraw
+				scrolled = true
+			}
 		default:
 			if key == 32 { // space
 				// Data cursor
-				e.Set(uint(dataCursor.X), uint(dataCursor.Y), ' ')
+				e.Set(dataCursor.X, dataCursor.Y, ' ')
 				dataCursor.X++
 				dataCursor.Wrap(c)
 				// Screen cursor
@@ -189,7 +228,7 @@ func main() {
 				// Data cursor
 				dataCursor.Y++
 				dataCursor.X = 0
-				e.CreateLineIfMissing(uint(dataCursor.Y))
+				e.CreateLineIfMissing(dataCursor.Y)
 				dataCursor.Wrap(c)
 				// Screen cursor
 				screenCursor.Y++
@@ -197,7 +236,7 @@ func main() {
 				screenCursor.Wrap(c)
 			} else if (key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z') { // letter
 				// Data cursor
-				e.Set(uint(dataCursor.X), uint(dataCursor.Y), rune(key))
+				e.Set(dataCursor.X, dataCursor.Y, rune(key))
 				dataCursor.X++
 				dataCursor.Wrap(c)
 				// Screen cursor
@@ -205,7 +244,7 @@ func main() {
 				screenCursor.X++
 				screenCursor.Wrap(c)
 			} else if key == 127 { // backspace
-				atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
+				atTab := '\t' == e.Get(int(dataCursor.X), int(dataCursor.Y))
 				// Data cursor
 				if dataCursor.X == 0 {
 					dataCursor.Y--
@@ -213,7 +252,7 @@ func main() {
 					dataCursor.X--
 				}
 				dataCursor.Wrap(c)
-				e.Set(uint(dataCursor.X), uint(dataCursor.Y), ' ')
+				e.Set(int(dataCursor.X), int(dataCursor.Y), ' ')
 				// Screen cursor
 				if screenCursor.X == 0 {
 					screenCursor.Y--
@@ -228,7 +267,7 @@ func main() {
 				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.LightYellow, vt100.BackgroundBlue, ' ')
 			} else if key == 9 { // tab
 				// Data cursor
-				e.Set(uint(dataCursor.X), uint(dataCursor.Y), '\t')
+				e.Set(int(dataCursor.X), int(dataCursor.Y), '\t')
 				dataCursor.X++
 				dataCursor.Wrap(c)
 				// Screen cursor
@@ -239,8 +278,8 @@ func main() {
 				dataCursor.X = 0
 				screenCursor.X = 0
 			} else if key == 5 { // ctrl-e, end
-				dataCursor.X = int(e.LastDataPosition(uint(dataCursor.Y)))
-				screenCursor.X = int(e.LastScreenPosition(uint(dataCursor.Y), uint(e.spacesPerTab)))
+				dataCursor.X = int(e.LastDataPosition(int(dataCursor.Y)))
+				screenCursor.X = int(e.LastScreenPosition(int(dataCursor.Y), int(e.spacesPerTab)))
 			} else if key == 19 { // ctrl-s, save
 				err := e.Save(filename)
 				if err != nil {
@@ -251,12 +290,17 @@ func main() {
 				}
 			} else if key != 0 { // any other key
 				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), vt100.LightYellow, vt100.BackgroundBlue, rune(key))
-				e.Set(uint(screenCursor.X), uint(screenCursor.Y), rune(key))
+				e.Set(screenCursor.X, screenCursor.Y, rune(key))
 				screenCursor.X++
 				screenCursor.Wrap(c)
 			}
 		}
-		if e.Changed() {
+		if scrolled {
+			// redraw all characters
+			h := int(c.Height())
+			e.WriteLines(c, 0+offset, h+offset, 0, 0)
+			c.Draw()
+		} else if e.Changed() {
 			c.Draw()
 		}
 		vt100.SetXY(uint(screenCursor.X), uint(screenCursor.Y))

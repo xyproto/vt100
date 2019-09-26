@@ -12,5 +12,13 @@
 
 ## Hotkeys
 
-* `ctrl-s` to save
 * `ctrl-q` to quit
+* `ctrl-e` go to end of line
+* `ctrl-a` go to start of line
+* `ctrl-n` scroll down
+* `ctrl-p` scroll up
+
+## Experimental features
+
+* `ctrl-s` to save (buggy)
+
