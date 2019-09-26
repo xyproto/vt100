@@ -9,14 +9,18 @@ import (
 	"time"
 )
 
-const spacesPerTab = 4
-
 type StatusBar struct {
 	msg string
+	fg  vt100.AttributeColor
+	bg  vt100.AttributeColor
+}
+
+func NewStatusBar() *StatusBar {
+	return &StatusBar{"", vt100.LightGreen, vt100.BackgroundDefault}
 }
 
 func (sb *StatusBar) Draw(c *vt100.Canvas) {
-	c.Write((c.W()-uint(len(sb.msg)))/2, c.H()-1, vt100.LightGreen, vt100.Default, sb.msg)
+	c.Write((c.W()-uint(len(sb.msg)))/2, c.H()-1, sb.fg, sb.bg, sb.msg)
 }
 
 func (sb *StatusBar) SetMessage(msg string) {
@@ -63,7 +67,7 @@ func main() {
 	c := vt100.NewCanvas()
 	c.FillBackground(vt100.Blue)
 
-	e := NewEditor()
+	e := NewEditor(4) // 4 spaces per tab
 	if filename != "" {
 		e.Load(filename)
 		// Draw editor lines from line 0 up to h onto the canvas at 0,0
@@ -72,7 +76,6 @@ func main() {
 	}
 
 	status := &StatusBar{}
-
 	c.Draw()
 
 	screenCursor := &Cursor{}
@@ -105,13 +108,13 @@ func main() {
 				dataCursor.Wrap(c)
 				if atStart {
 					screenCursor.Y--
-					screenCursor.X = e.LastScreenPosition(uint(dataCursor.Y), spacesPerTab)
+					screenCursor.X = e.LastScreenPosition(uint(dataCursor.Y), uint(e.spacesPerTab))
 				} else {
 					// Check if we hit a tab character
 					atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
 					// Move the screen cursor
-					if atTab && screenCursor.X >= spacesPerTab {
-						screenCursor.X -= spacesPerTab
+					if atTab && screenCursor.X >= e.spacesPerTab {
+						screenCursor.X -= e.spacesPerTab
 					} else {
 						screenCursor.X--
 					}
@@ -135,8 +138,8 @@ func main() {
 				dataCursor.X++
 				dataCursor.Wrap(c)
 				// Move the screen cursor
-				if atTab && uint(screenCursor.X) < (c.Width()-spacesPerTab) {
-					screenCursor.X += spacesPerTab
+				if atTab && screenCursor.X < (int(c.Width())-e.spacesPerTab) {
+					screenCursor.X += e.spacesPerTab
 				} else {
 					screenCursor.X++
 				}
@@ -216,7 +219,7 @@ func main() {
 					screenCursor.Y--
 				} else {
 					if atTab {
-						screenCursor.X -= spacesPerTab
+						screenCursor.X -= e.spacesPerTab
 					} else {
 						screenCursor.X--
 					}
@@ -230,14 +233,14 @@ func main() {
 				dataCursor.Wrap(c)
 				// Screen cursor
 				c.Write(uint(screenCursor.X), uint(screenCursor.Y), vt100.LightYellow, vt100.BackgroundBlue, "    ")
-				screenCursor.X += spacesPerTab
+				screenCursor.X += e.spacesPerTab
 				screenCursor.Wrap(c)
 			} else if key == 1 { // ctrl-a, home
 				dataCursor.X = 0
 				screenCursor.X = 0
 			} else if key == 5 { // ctrl-e, end
 				dataCursor.X = int(e.LastDataPosition(uint(dataCursor.Y)))
-				screenCursor.X = int(e.LastScreenPosition(uint(dataCursor.Y), spacesPerTab))
+				screenCursor.X = int(e.LastScreenPosition(uint(dataCursor.Y), uint(e.spacesPerTab)))
 			} else if key == 19 { // ctrl-s, save
 				err := e.Save(filename)
 				if err != nil {

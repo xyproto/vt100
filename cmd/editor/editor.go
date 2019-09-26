@@ -9,15 +9,21 @@ import (
 )
 
 type Editor struct {
-	lines      map[uint][]rune
-	insertMode bool
-	changed    bool
+	lines        map[uint][]rune
+	insertMode   bool
+	changed      bool
+	fg           vt100.AttributeColor
+	bg           vt100.AttributeColor
+	spacesPerTab int
 }
 
-func NewEditor() *Editor {
+func NewEditor(spacesPerTab int) *Editor {
 	e := &Editor{}
 	e.lines = make(map[uint][]rune)
 	e.insertMode = true
+	e.fg = vt100.LightYellow
+	e.bg = vt100.BackgroundDefault
+	e.spacesPerTab = spacesPerTab
 	return e
 }
 
