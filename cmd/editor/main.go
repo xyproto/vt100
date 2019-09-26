@@ -92,24 +92,35 @@ func main() {
 		case 17: // ctrl-q
 			quit = true
 		case 37: // left arrow
-			atStart := dataCursor.X == 0 && dataCursor.Y == 0
-			if !atStart {
+			atStart := 0 == dataCursor.X
+			atDocumentStart := 0 == dataCursor.X && 0 == dataCursor.Y
+			if !atDocumentStart {
 				// Move the data cursor
-				dataCursor.X--
-				dataCursor.Wrap(c)
-				// Check if we hit a tab character
-				atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
-				// Move the screen cursor
-				if atTab && screenCursor.X >= spacesPerTab {
-					screenCursor.X -= spacesPerTab
+				if atStart {
+					dataCursor.Y--
+					dataCursor.X = e.LastDataPosition(uint(dataCursor.Y))
 				} else {
-					screenCursor.X--
+					dataCursor.X--
+				}
+				dataCursor.Wrap(c)
+				if atStart {
+					screenCursor.Y--
+					screenCursor.X = e.LastScreenPosition(uint(dataCursor.Y), spacesPerTab)
+				} else {
+					// Check if we hit a tab character
+					atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
+					// Move the screen cursor
+					if atTab && screenCursor.X >= spacesPerTab {
+						screenCursor.X -= spacesPerTab
+					} else {
+						screenCursor.X--
+					}
 				}
 				screenCursor.Wrap(c)
 			}
 		case 39: // right arrow
 			atTab := '\t' == e.Get(uint(dataCursor.X), uint(dataCursor.Y))
-			atEnd := dataCursor.X >= e.LastPosition(uint(dataCursor.Y))
+			atEnd := dataCursor.X >= e.LastDataPosition(uint(dataCursor.Y))
 			if atEnd {
 				// Move the data cursor
 				dataCursor.X = 0
@@ -225,10 +236,8 @@ func main() {
 				dataCursor.X = 0
 				screenCursor.X = 0
 			} else if key == 5 { // ctrl-e, end
-				lastPosition := e.LastPosition(uint(dataCursor.Y))
-				dataCursor.X = int(lastPosition)
-				tabCount := e.Count(uint(dataCursor.Y), '\t')
-				screenCursor.X = int(tabCount)*int(spacesPerTab) + (lastPosition - int(tabCount))
+				dataCursor.X = int(e.LastDataPosition(uint(dataCursor.Y)))
+				screenCursor.X = int(e.LastScreenPosition(uint(dataCursor.Y), spacesPerTab))
 			} else if key == 19 { // ctrl-s, save
 				err := e.Save(filename)
 				if err != nil {
