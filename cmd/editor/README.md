@@ -1,24 +1,26 @@
-## A very limited text editor example
+## Simple text editor
+
+A small and experimental editor. Don't use it on files you care about!
 
 ## Features and limitations
 
-* The editor must be given a filename at launch.
-* File editing does not work correctly, anything may happen! Don't save if you don't mean it.
-* Backspace does not work correctly.
-* The editor can not scroll.
-* It's just an example, not a proper editor, use with care!
-* Right and left arrow keys works correctly.
+* The editor must be given a filename at launch-time.
+* The editor is always in "insert mode".
+* All trailing spaces are removed when saving, but a final newline is kept.
 * Understands tab characters.
+* The arrow keys works correctly.
+* Can scroll, with `ctrl-n` and `ctrl-p`.
+* `esc` can be used to toggle "end of line mode" where the cursor is limited to the end of lines and "free floating mode".
+* The "free floating mode" is enabled at launch, and is not too bad for drawing ASCII graphics.
+* There is no undo!
 
 ## Hotkeys
 
 * `ctrl-q` to quit
-* `ctrl-e` go to end of line
 * `ctrl-a` go to start of line
-* `ctrl-n` scroll down
+* `ctrl-e` go to end of line
 * `ctrl-p` scroll up
-
-## Experimental features
-
-* `ctrl-s` to save (buggy)
-
+* `ctrl-n` scroll down
+* `ctrl-l` to redraw
+* `ctrl-k` to delete characters to the end of the line
+* `ctrl-s` to save (don't use this on files you care about!)

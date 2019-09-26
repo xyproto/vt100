@@ -6,33 +6,41 @@ import (
 	"github.com/xyproto/vt100"
 	"io/ioutil"
 	"strings"
+	"unicode"
 )
 
 type Editor struct {
 	lines        map[int][]rune
-	insertMode   bool
+	eolMode      bool // stop at the end of lines
 	changed      bool
 	fg           vt100.AttributeColor
 	bg           vt100.AttributeColor
-	spacesPerTab int
+	spacesPerTab int // how many spaces per tab character
+	scrollSpeed  int // how many lines to scroll, when scrolling
 }
 
-func NewEditor(spacesPerTab int) *Editor {
+// Takes:
+// * the number of spaces per tab (typically 2, 4 or 8)
+// * how many lines the editor should scroll when ctrl-n or ctrl-p are pressed (typically 1, 5 or 10)
+// * foreground color attributes
+// * background color attributes
+func NewEditor(spacesPerTab, scrollSpeed int, fg, bg vt100.AttributeColor) *Editor {
 	e := &Editor{}
 	e.lines = make(map[int][]rune)
-	e.insertMode = true
-	e.fg = vt100.LightYellow
-	e.bg = vt100.BackgroundDefault
+	e.eolMode = false
+	e.fg = fg
+	e.bg = bg
 	e.spacesPerTab = spacesPerTab
+	e.scrollSpeed = scrollSpeed
 	return e
 }
 
-func (e *Editor) InsertMode() bool {
-	return e.insertMode
+func (e *Editor) EOLMode() bool {
+	return e.eolMode
 }
 
-func (e *Editor) ToggleInsertMode() {
-	e.insertMode = !e.insertMode
+func (e *Editor) ToggleEOLMode() {
+	e.eolMode = !e.eolMode
 }
 
 func (e *Editor) Set(x, y int, r rune) {
@@ -154,8 +162,21 @@ func (e *Editor) Load(filename string) error {
 	return nil
 }
 
-func (e *Editor) Save(filename string) error {
-	return ioutil.WriteFile(filename, []byte(e.String()), 0664)
+func (e *Editor) Save(filename string, stripTrailingSpaces bool) error {
+	data := []byte(e.String())
+	if stripTrailingSpaces {
+		// Strip trailing spaces and write to file
+		byteLines := bytes.Split(data, []byte{'\n'})
+		for i := range byteLines {
+			byteLines[i] = bytes.TrimRightFunc(byteLines[i], unicode.IsSpace)
+		}
+		// Join the lines and then remove trailing blank lines
+		data = bytes.TrimRightFunc(bytes.Join(byteLines, []byte{'\n'}), unicode.IsSpace)
+		// But add a final newline
+		data = append(data, []byte{'\n'}...)
+	}
+	// Write the data to file
+	return ioutil.WriteFile(filename, data, 0664)
 }
 
 // Write editor lines from "fromline" to and up to "toline" to the canvas at cx, cy
@@ -170,19 +191,33 @@ func (e *Editor) WriteLines(c *vt100.Canvas, fromline, toline, cx, cy int) error
 		counter := 0
 		for _, letter := range e.Line(y + offset) {
 			if letter == '\t' {
-				c.Write(uint(cx+counter), uint(cy+y), vt100.White, vt100.BackgroundBlue, "    ")
+				c.Write(uint(cx+counter), uint(cy+y), e.fg, e.bg, "    ")
 				counter += 4
 			} else {
-				c.WriteRune(uint(cx+counter), uint(cy+y), vt100.White, vt100.BackgroundBlue, letter)
+				c.WriteRune(uint(cx+counter), uint(cy+y), e.fg, e.bg, letter)
 				counter++
 			}
 		}
 		// Fill the rest of the line on the canvas with "blanks"
 		for x := counter; x < w; x++ {
-			c.WriteRune(uint(cx+x), uint(cy+y), vt100.White, vt100.BackgroundBlue, ' ')
+			c.WriteRune(uint(cx+x), uint(cy+y), e.fg, e.bg, ' ')
 		}
 	}
 	return nil
+}
+
+func (e *Editor) DeleteRestOfLine(x, y int) {
+	if e.lines == nil {
+		e.lines = make(map[int][]rune)
+	}
+	_, ok := e.lines[y]
+	if !ok {
+		return
+	}
+	if x >= len(e.lines[y]) {
+		return
+	}
+	e.lines[y] = e.lines[y][:x]
 }
 
 func (e *Editor) CreateLineIfMissing(n int) {
