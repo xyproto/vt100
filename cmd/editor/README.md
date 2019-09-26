@@ -8,10 +8,8 @@ A small and experimental editor. Don't use it on files you care about!
 * The editor is always in "insert mode".
 * All trailing spaces are removed when saving, but a final newline is kept.
 * Understands tab characters.
-* The arrow keys works correctly.
-* Can scroll, with `ctrl-n` and `ctrl-p`.
-* `esc` can be used to toggle "end of line mode" where the cursor is limited to the end of lines and "free floating mode".
-* The "free floating mode" is enabled at launch, and is not too bad for drawing ASCII graphics.
+* Can scroll, with `ctrl-n` and `ctrl-p`. There is something wonky about the scrolling behavior, though.
+* `esc` can be used to toggle "end of line mode" where the cursor is limited to the end of lines and "ASCII drawing mode".
 * There is no undo!
 
 ## Hotkeys

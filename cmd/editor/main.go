@@ -12,19 +12,20 @@ func main() {
 
 	var (
 		// These are used for initializing various structs
-		editorForeground = vt100.LightBlue
-		editorBackground = vt100.BackgroundGray
+		editorForeground = vt100.LightYellow
+		editorBackground = vt100.BackgroundBlue
+		floatForeground  = vt100.LightGreen
+		floatBackground  = vt100.BackgroundBlack
 		statusForeground = vt100.Red
 		statusBackground = vt100.BackgroundBlack
-		statusDuration   = 2000 * time.Millisecond
+
+		statusDuration = 2000 * time.Millisecond
 	)
 
 	flag.Parse()
 	filename := flag.Arg(0)
 	if filename == "" {
-		fmt.Println("ved (vt100 editor) version 1.0.0")
-		fmt.Println()
-		fmt.Println("Please supply a filename.")
+		fmt.Fprintln(os.Stderr, "Please supply a filename.")
 		os.Exit(1)
 	}
 
@@ -50,6 +51,9 @@ func main() {
 	status := NewStatusBar(statusForeground, statusBackground, e, statusDuration)
 	c.Draw()
 
+	status.SetMessage("ved 1.0.0")
+	status.Show(c)
+
 	screenCursor := &Cursor{}
 	dataCursor := &Cursor{}
 
@@ -65,19 +69,17 @@ func main() {
 		case 27: // esc
 			e.ToggleEOLMode()
 			if e.EOLMode() {
-				e.fg = vt100.LightGreen
-				e.bg = vt100.BackgroundBlack
-				c.FillBackground(e.bg)
-				c.Draw()
-				status.SetMessage("    end of line mode    ")
-				status.Show(c)
-			} else {
 				e.fg = editorForeground
 				e.bg = editorBackground
 				c.FillBackground(e.bg)
-				c.Draw()
-				status.SetMessage("    free floating mode    ")
-				status.Show(c)
+				status.SetMessage("text edit mode")
+				redraw = true
+			} else {
+				e.fg = floatForeground
+				e.bg = floatBackground
+				c.FillBackground(e.bg)
+				status.SetMessage("ASCII graphics mode")
+				redraw = true
 			}
 		case 17: // ctrl-q
 			quit = true
@@ -137,15 +139,16 @@ func main() {
 				screenCursor.Wrap(c)
 			}
 		case 38: // up arrow
-			// Move the data cursor
-			dataCursor.Y--
-			dataCursor.Wrap(c)
 			// Move the screen cursor
 			if screenCursor.Y == 0 {
 				// If at the top, don't move up, but scroll the contents
-				status.SetMessage("    top of screen    ")
+				status.SetMessage("top of screen")
 				status.Show(c)
 			} else {
+				// Move the data cursor
+				dataCursor.Y--
+				dataCursor.Wrap(c)
+				// Move the screen cursor
 				screenCursor.Y--
 				screenCursor.Wrap(c)
 			}
@@ -159,17 +162,29 @@ func main() {
 				}
 			}
 		case 40: // down arrow
-			// Move the data cursor
-			dataCursor.Y++
-			dataCursor.Wrap(c)
-			// Move the screen cursor
-			if screenCursor.Y == int(c.H()-1) {
-				// If at the bottom, don't move down, but scroll the contents
-				status.SetMessage("    bottom of screen    ")
-				status.Show(c)
-			} else {
-				screenCursor.Y++
-				screenCursor.Wrap(c)
+			if !e.EOLMode() || (e.EOLMode() && dataCursor.Y < e.Len()) {
+				// Move the screen cursor
+				if screenCursor.Y == int(c.H()-1) {
+					// If at the bottom, don't move down, but scroll the contents
+					status.SetMessage("bottom of screen")
+					status.Show(c)
+				} else {
+					// Move the data cursor
+					dataCursor.Y++
+					dataCursor.Wrap(c)
+					// Move the screen cursor
+					screenCursor.Y++
+					screenCursor.Wrap(c)
+				}
+				// If the cursor is after the length of the current line, move it to the end of the current line
+				if e.EOLMode() {
+					if dataCursor.X > e.LastDataPosition(int(dataCursor.Y)) {
+						dataCursor.X = int(e.LastDataPosition(int(dataCursor.Y))) + 1
+					}
+					if screenCursor.X > e.LastScreenPosition(int(screenCursor.Y), int(e.spacesPerTab)) {
+						screenCursor.X = int(e.LastScreenPosition(int(dataCursor.Y), int(e.spacesPerTab))) + 1
+					}
+				}
 			}
 			// If the cursor is after the length of the current line, move it to the end of the current line
 			if e.EOLMode() {
@@ -184,7 +199,7 @@ func main() {
 			h := int(c.H())
 			if offset >= e.Len()-h {
 				// Status message
-				status.SetMessage("    EOF    ")
+				status.SetMessage("EOF")
 				status.Show(c)
 				c.Draw()
 			} else {
@@ -206,7 +221,7 @@ func main() {
 			if offset == 0 {
 				// Can't scroll further up
 				// Status message
-				status.SetMessage("    at top    ")
+				status.SetMessage("at top")
 				status.Show(c)
 				c.Draw()
 			} else {
@@ -327,6 +342,8 @@ func main() {
 			h := int(c.Height())
 			e.WriteLines(c, 0+offset, h+offset, 0, 0)
 			c.Draw()
+			status.Show(c)
+			redraw = false
 		} else if e.Changed() {
 			c.Draw()
 		}

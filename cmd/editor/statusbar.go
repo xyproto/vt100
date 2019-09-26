@@ -27,11 +27,11 @@ func (sb *StatusBar) Draw(c *vt100.Canvas) {
 }
 
 func (sb *StatusBar) SetMessage(msg string) {
-	sb.msg = msg
+	sb.msg = "       " + msg + "       "
 }
 
 func (sb *StatusBar) Clear(c *vt100.Canvas) {
-	sb.msg = strings.Repeat(" ", len(sb.msg))
+	sb.msg = strings.Repeat(" ", len(sb.msg)+1)
 	w := int(c.W())
 	c.Write(uint((w-len(sb.msg))/2), c.H()-1, sb.editor.fg, sb.editor.bg, sb.msg)
 	sb.msg = ""
@@ -39,6 +39,9 @@ func (sb *StatusBar) Clear(c *vt100.Canvas) {
 
 // Draw a status message, then clear it after a configurable delay
 func (sb *StatusBar) Show(c *vt100.Canvas) {
+	if sb.msg == "" {
+		return
+	}
 	sb.Draw(c)
 	go func() {
 		time.Sleep(sb.show)

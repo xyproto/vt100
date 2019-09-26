@@ -27,7 +27,7 @@ type Editor struct {
 func NewEditor(spacesPerTab, scrollSpeed int, fg, bg vt100.AttributeColor) *Editor {
 	e := &Editor{}
 	e.lines = make(map[int][]rune)
-	e.eolMode = false
+	e.eolMode = true
 	e.fg = fg
 	e.bg = bg
 	e.spacesPerTab = spacesPerTab
