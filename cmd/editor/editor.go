@@ -195,17 +195,25 @@ func (e *Editor) WriteLines(c *vt100.Canvas, fromline, toline, cx, cy int) error
 	for y := 0; y < numlines; y++ {
 		counter := 0
 		line := strings.ReplaceAll(e.Line(y+offset), "\t", tabString)
+		if len(line) >= w {
+			// Shorten the line a bit if it's too wide
+			line = line[:w]
+		}
 		if e.eolMode {
 			// Output a syntax highlighted line
 			vt100.SetXY(uint(cx+counter), uint(cy+y))
 			if textWithTags, err := syntax.AsText([]byte(line)); err != nil {
 				fmt.Println(line)
+				counter += len(line)
 			} else {
 				// Slice of runes and color attributes
-				cas := o.Extract(o.LightTags(string(textWithTags)))
-				for _, ca := range cas {
+				charactersAndAttributes := o.Extract(o.DarkTags(string(textWithTags)))
+				for _, ca := range charactersAndAttributes {
 					letter := ca.R
 					fg := ca.A
+					if letter == ' ' {
+						fg = e.fg
+					}
 					if letter == '\t' {
 						c.Write(uint(cx+counter), uint(cy+y), fg, e.bg, tabString)
 						counter += 4
@@ -218,8 +226,8 @@ func (e *Editor) WriteLines(c *vt100.Canvas, fromline, toline, cx, cy int) error
 		} else {
 			// Output a regular line
 			c.Write(uint(cx+counter), uint(cy+y), e.fg, e.bg, line)
+			counter += len(line)
 		}
-		counter += len(line)
 		// Fill the rest of the line on the canvas with "blanks"
 		for x := counter; x < w; x++ {
 			c.WriteRune(uint(cx+x), uint(cy+y), e.fg, e.bg, ' ')

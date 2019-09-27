@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/xyproto/vt100"
-	"strings"
 	"time"
 )
 
@@ -12,37 +11,40 @@ type StatusBar struct {
 	bg     vt100.AttributeColor // draw background color
 	editor *Editor              // an editor struct (for getting the colors when clearing the status)
 	show   time.Duration        // show the message for how long before clearing
+	offset int
 }
 
 // Takes a foreground color, background color, foreground color for clearing,
 // background color for clearing and a duration for how long to display status
 // messages.
 func NewStatusBar(fg, bg vt100.AttributeColor, editor *Editor, show time.Duration) *StatusBar {
-	return &StatusBar{"", fg, bg, editor, show}
+	return &StatusBar{"", fg, bg, editor, show, 0}
 }
 
-func (sb *StatusBar) Draw(c *vt100.Canvas) {
+func (sb *StatusBar) Draw(c *vt100.Canvas, offset int) {
 	w := int(c.W())
 	c.Write(uint((w-len(sb.msg))/2), c.H()-1, sb.fg, sb.bg, sb.msg)
+	sb.offset = offset
 }
 
 func (sb *StatusBar) SetMessage(msg string) {
-	sb.msg = "       " + msg + "       "
+	sb.msg = "    " + msg + "    "
 }
 
 func (sb *StatusBar) Clear(c *vt100.Canvas) {
-	sb.msg = strings.Repeat(" ", len(sb.msg)+1)
-	w := int(c.W())
-	c.Write(uint((w-len(sb.msg))/2), c.H()-1, sb.editor.fg, sb.editor.bg, sb.msg)
 	sb.msg = ""
+	// place all characters back in the canvas
+	h := int(c.H())
+	sb.editor.WriteLines(c, 0+sb.offset, h+sb.offset, 0, 0)
+	//c.Draw()
 }
 
 // Draw a status message, then clear it after a configurable delay
-func (sb *StatusBar) Show(c *vt100.Canvas) {
+func (sb *StatusBar) Show(c *vt100.Canvas, offset int) {
 	if sb.msg == "" {
 		return
 	}
-	sb.Draw(c)
+	sb.Draw(c, offset)
 	go func() {
 		time.Sleep(sb.show)
 		sb.Clear(c)

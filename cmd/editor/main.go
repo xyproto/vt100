@@ -14,13 +14,13 @@ func main() {
 		// These are used for initializing various structs
 		defaultEditorForeground       = vt100.LightCyan
 		defaultEditorBackground       = vt100.BackgroundBlack
-		defaultEditorStatusForeground = vt100.LightGreen
-		defaultEditorStatusBackground = vt100.BackgroundBlack
+		defaultEditorStatusForeground = vt100.Black
+		defaultEditorStatusBackground = vt100.BackgroundGray
 
-		defaultASCIIGraphicsForeground       = vt100.Black
+		defaultASCIIGraphicsForeground       = vt100.LightYellow
 		defaultASCIIGraphicsBackground       = vt100.BackgroundBlue
-		defaultASCIIGraphicsStatusForeground = vt100.Blue
-		defaultASCIIGraphicsStatusBackground = vt100.BackgroundWhite
+		defaultASCIIGraphicsStatusForeground = vt100.White
+		defaultASCIIGraphicsStatusBackground = vt100.BackgroundMagenta
 
 		statusDuration = 3000 * time.Millisecond
 	)
@@ -54,8 +54,8 @@ func main() {
 	status := NewStatusBar(defaultEditorStatusForeground, defaultEditorStatusBackground, e, statusDuration)
 	c.Draw()
 
-	status.SetMessage("ved 1.0.0")
-	status.Show(c)
+	status.SetMessage("Welcome to Red 1.0.0")
+	status.Show(c, offset)
 
 	screenCursor := &Cursor{}
 	dataCursor := &Cursor{}
@@ -88,8 +88,8 @@ func main() {
 			quit = true
 		case 7: // ctrl-g, status information
 			currentRune := e.Get(dataCursor.X, dataCursor.Y)
-			status.SetMessage(fmt.Sprintf("%d,%d (data %d,%d) w:%d letter:%c (%U)", screenCursor.X, screenCursor.Y, dataCursor.X, dataCursor.Y, e.WordCount(), currentRune, currentRune))
-			status.Show(c)
+			status.SetMessage(fmt.Sprintf("%d,%d (data %d,%d) letter: %c wordcount: %d", screenCursor.X, screenCursor.Y, dataCursor.X, dataCursor.Y, currentRune, e.WordCount()))
+			status.Show(c, offset)
 		case 37: // left arrow
 			atStart := 0 == dataCursor.X
 			atDocumentStart := 0 == dataCursor.X && 0 == dataCursor.Y
@@ -133,7 +133,7 @@ func main() {
 					screenCursor.Y++
 				} else {
 					status.SetMessage("End of text")
-					status.Show(c)
+					status.Show(c, offset)
 				}
 				dataCursor.Wrap(c)
 				// Move the screen cursor
@@ -156,7 +156,7 @@ func main() {
 			if screenCursor.Y == 0 {
 				// If at the top, don't move up, but scroll the contents
 				status.SetMessage("Top of screen")
-				status.Show(c)
+				status.Show(c, offset)
 			} else {
 				// Move the data cursor
 				dataCursor.Y--
@@ -180,7 +180,7 @@ func main() {
 				if screenCursor.Y == int(c.H()-1) {
 					// If at the bottom, don't move down, but scroll the contents
 					status.SetMessage("Bottom of screen")
-					status.Show(c)
+					status.Show(c, offset)
 				} else {
 					// Move the data cursor
 					dataCursor.Y++
@@ -200,7 +200,7 @@ func main() {
 				}
 			} else if e.EOLMode() {
 				status.SetMessage("End of text")
-				status.Show(c)
+				status.Show(c, offset)
 			}
 			// If the cursor is after the length of the current line, move it to the end of the current line
 			if e.EOLMode() {
@@ -216,7 +216,7 @@ func main() {
 			if offset >= e.Len()-h {
 				// Status message
 				status.SetMessage("End of text")
-				status.Show(c)
+				status.Show(c, offset)
 				c.Draw()
 			} else {
 				status.Clear(c)
@@ -240,7 +240,7 @@ func main() {
 				// Can't scroll further up
 				// Status message
 				status.SetMessage("Start of text")
-				status.Show(c)
+				status.Show(c, offset)
 				c.Draw()
 			} else {
 				status.Clear(c)
@@ -291,25 +291,23 @@ func main() {
 			} else if key == 127 { // backspace
 				atTab := '\t' == e.Get(dataCursor.X, dataCursor.Y)
 				// Data cursor
-				if dataCursor.X == 0 {
-					dataCursor.Y--
-				} else {
+				if dataCursor.X > 0 {
 					dataCursor.X--
-				}
-				dataCursor.Wrap(c)
-				e.Set(dataCursor.X, dataCursor.Y, ' ')
-				// Screen cursor
-				if screenCursor.X == 0 {
-					screenCursor.Y--
-				} else {
-					if atTab {
-						screenCursor.X -= e.spacesPerTab
+					dataCursor.Wrap(c)
+					e.Set(dataCursor.X, dataCursor.Y, ' ')
+					// Screen cursor
+					if screenCursor.X == 0 {
+						screenCursor.Y--
 					} else {
-						screenCursor.X--
+						if atTab {
+							screenCursor.X -= e.spacesPerTab
+						} else {
+							screenCursor.X--
+						}
 					}
+					screenCursor.Wrap(c)
+					c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), e.fg, e.bg, ' ')
 				}
-				screenCursor.Wrap(c)
-				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), e.fg, e.bg, ' ')
 			} else if key == 9 { // tab
 				// Data cursor
 				e.Set(dataCursor.X, dataCursor.Y, '\t')
@@ -335,7 +333,7 @@ func main() {
 				}
 				// Status message
 				status.SetMessage("Saved " + filename)
-				status.Show(c)
+				status.Show(c, offset)
 				c.Draw()
 			} else if key == 12 { // ctrl-l, redraw
 				redraw = true
@@ -359,7 +357,7 @@ func main() {
 			h := int(c.Height())
 			e.WriteLines(c, 0+offset, h+offset, 0, 0)
 			c.Draw()
-			status.Show(c)
+			status.Show(c, offset)
 			redraw = false
 		} else if e.Changed() {
 			c.Draw()
