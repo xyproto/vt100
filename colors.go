@@ -38,14 +38,14 @@ var (
 	LightGray = NewAttributeColor("White")
 
 	// Light foreground colors (+ dark gray)
-	DarkGray     = NewAttributeColor("Bright", "Black")
-	LightRed     = NewAttributeColor("Bright", "Red")
-	LightGreen   = NewAttributeColor("Bright", "Green")
-	LightYellow  = NewAttributeColor("Bright", "Yellow")
-	LightBlue    = NewAttributeColor("Bright", "Blue")
-	LightMagenta = NewAttributeColor("Bright", "Magenta")
-	LightCyan    = NewAttributeColor("Bright", "Cyan")
-	White        = NewAttributeColor("Bright", "White")
+	DarkGray     = NewAttributeColor("90")
+	LightRed     = NewAttributeColor("91")
+	LightGreen   = NewAttributeColor("92")
+	LightYellow  = NewAttributeColor("93")
+	LightBlue    = NewAttributeColor("94")
+	LightMagenta = NewAttributeColor("95")
+	LightCyan    = NewAttributeColor("96")
+	White        = NewAttributeColor("97")
 
 	// Aliases
 	Pink = LightMagenta
