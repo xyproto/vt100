@@ -48,3 +48,8 @@ func (sb *StatusBar) Show(c *vt100.Canvas) {
 		sb.Clear(c)
 	}()
 }
+
+func (sb *StatusBar) SetColors(fg, bg vt100.AttributeColor) {
+	sb.fg = fg
+	sb.bg = bg
+}

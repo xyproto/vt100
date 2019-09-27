@@ -3,6 +3,9 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"github.com/xyproto/syntax"
+	"github.com/xyproto/textoutput"
 	"github.com/xyproto/vt100"
 	"io/ioutil"
 	"strings"
@@ -181,6 +184,8 @@ func (e *Editor) Save(filename string, stripTrailingSpaces bool) error {
 
 // Write editor lines from "fromline" to and up to "toline" to the canvas at cx, cy
 func (e *Editor) WriteLines(c *vt100.Canvas, fromline, toline, cx, cy int) error {
+	o := textoutput.NewTextOutput(true, true)
+	tabString := strings.Repeat(" ", e.spacesPerTab)
 	w := int(c.Width())
 	if fromline >= toline {
 		return errors.New("fromline >= toline in WriteLines")
@@ -189,15 +194,32 @@ func (e *Editor) WriteLines(c *vt100.Canvas, fromline, toline, cx, cy int) error
 	offset := fromline
 	for y := 0; y < numlines; y++ {
 		counter := 0
-		for _, letter := range e.Line(y + offset) {
-			if letter == '\t' {
-				c.Write(uint(cx+counter), uint(cy+y), e.fg, e.bg, "    ")
-				counter += 4
+		line := strings.ReplaceAll(e.Line(y+offset), "\t", tabString)
+		if e.eolMode {
+			// Output a syntax highlighted line
+			vt100.SetXY(uint(cx+counter), uint(cy+y))
+			if textWithTags, err := syntax.AsText([]byte(line)); err != nil {
+				fmt.Println(line)
 			} else {
-				c.WriteRune(uint(cx+counter), uint(cy+y), e.fg, e.bg, letter)
-				counter++
+				// Slice of runes and color attributes
+				cas := o.Extract(o.LightTags(string(textWithTags)))
+				for _, ca := range cas {
+					letter := ca.R
+					fg := ca.A
+					if letter == '\t' {
+						c.Write(uint(cx+counter), uint(cy+y), fg, e.bg, tabString)
+						counter += 4
+					} else {
+						c.WriteRune(uint(cx+counter), uint(cy+y), fg, e.bg, letter)
+						counter++
+					}
+				}
 			}
+		} else {
+			// Output a regular line
+			c.Write(uint(cx+counter), uint(cy+y), e.fg, e.bg, line)
 		}
+		counter += len(line)
 		// Fill the rest of the line on the canvas with "blanks"
 		for x := counter; x < w; x++ {
 			c.WriteRune(uint(cx+x), uint(cy+y), e.fg, e.bg, ' ')
@@ -228,4 +250,14 @@ func (e *Editor) CreateLineIfMissing(n int) {
 	if !ok {
 		e.lines[n] = make([]rune, 0)
 	}
+}
+
+func (e *Editor) SetColors(fg, bg vt100.AttributeColor) {
+	e.fg = fg
+	e.bg = bg
+}
+
+// WordCount returns the number of spaces in the text + 1
+func (e *Editor) WordCount() int {
+	return strings.Count(e.String(), " ") + 1
 }
