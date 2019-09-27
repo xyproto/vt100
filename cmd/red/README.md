@@ -16,6 +16,8 @@ Don't use it on files you care about!
 * Keys like `Home` and `End` are not even registered by the key handler.
 * There is no undo.
 * Characters may appear on the screen when keys are pressed. Clear them with `ctrl-l`.
+* Letters that are not a-z, A-Z or simple punctuation may not be possible to type in.
+* Targeting vt100 has many limitations.
 
 ## Hotkeys
 
