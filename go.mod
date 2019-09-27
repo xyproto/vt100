@@ -4,5 +4,7 @@ go 1.12
 
 require (
 	github.com/pkg/term v0.0.0-20190109203006-aa71e9d9e942
-	golang.org/x/sys v0.0.0-20190924092210-98129a5cf4a0 // indirect
+	github.com/xyproto/syntax v0.0.0-20190927094555-097e1b369e57
+	github.com/xyproto/textoutput v1.7.1-0.20190927112604-959d7da24b61
+	golang.org/x/sys v0.0.0-20190927073244-c990c680b611 // indirect
 )
