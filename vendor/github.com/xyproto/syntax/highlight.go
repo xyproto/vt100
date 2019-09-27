@@ -150,18 +150,18 @@ type Option func(options *TextConfig)
 // DefaultTextConfig provides class names that match the color names of
 // textoutput tags: https://github.com/xyproto/textoutput
 var DefaultTextConfig = TextConfig{
-	String:        "yellow",
-	Keyword:       "cyan",
-	Comment:       "gray",
-	Type:          "blue",
-	Literal:       "magenta",
-	Punctuation:   "magenta",
-	Plaintext:     "gray",
-	Tag:           "cyan",
-	TextTag:       "yellow",
-	TextAttrName:  "yellow",
-	TextAttrValue: "green",
-	Decimal:       "blue",
+	String:        "white",
+	Keyword:       "red",
+	Comment:       "darkgray",
+	Type:          "white",
+	Literal:       "white",
+	Punctuation:   "red",
+	Plaintext:     "white",
+	Tag:           "white",
+	TextTag:       "white",
+	TextAttrName:  "white",
+	TextAttrValue: "white",
+	Decimal:       "red",
 	Whitespace:    "",
 }
 

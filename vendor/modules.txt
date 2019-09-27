@@ -3,7 +3,7 @@ github.com/pkg/term
 github.com/pkg/term/termios
 # github.com/sourcegraph/annotate v0.0.0-20160123013949-f4cad6c6324d
 github.com/sourcegraph/annotate
-# github.com/xyproto/syntax v0.0.0-20190927094555-097e1b369e57
+# github.com/xyproto/syntax v0.0.0-20190927130316-33ad839f30fd
 github.com/xyproto/syntax
 # github.com/xyproto/textoutput v1.7.1-0.20190927112604-959d7da24b61
 github.com/xyproto/textoutput
