@@ -22,6 +22,7 @@ For a more modern editor, also written in Go, look into [micro](https://github.c
 * Letters that are not a-z, A-Z or simple punctuation may not be possible to type in.
 * Lines longer than the terminal width are not handled correctly.
 * Characters may appear on the screen when keys are pressed. Clear them with `ctrl-l`.
+* Unicode characters are not displayed correctly when loading a file.
 
 ## Hotkeys
 
