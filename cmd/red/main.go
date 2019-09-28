@@ -11,7 +11,6 @@ import (
 const versionString = "rED 1.0.0"
 
 func main() {
-
 	var (
 		// These are used for initializing various structs
 		defaultEditorForeground       = vt100.LightCyan
@@ -90,7 +89,11 @@ func main() {
 			quit = true
 		case 7: // ctrl-g, status information
 			currentRune := e.Get(dataCursor.X, dataCursor.Y)
-			status.SetMessage(fmt.Sprintf("%d,%d (data %d,%d) letter: %c wordcount: %d", screenCursor.X, screenCursor.Y, dataCursor.X, dataCursor.Y, currentRune, e.WordCount()))
+			if currentRune > 32 {
+				status.SetMessage(fmt.Sprintf("%d,%d (data %d,%d) %c (%U) wordcount: %d", screenCursor.X, screenCursor.Y, dataCursor.X, dataCursor.Y, currentRune, currentRune, e.WordCount()))
+			} else {
+				status.SetMessage(fmt.Sprintf("%d,%d (data %d,%d) %U wordcount: %d", screenCursor.X, screenCursor.Y, dataCursor.X, dataCursor.Y, currentRune, e.WordCount()))
+			}
 			status.Show(c, offset)
 		case 37: // left arrow
 			atStart := 0 == dataCursor.X
