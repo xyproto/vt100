@@ -13,7 +13,7 @@ const versionString = "rED 1.0.0"
 func main() {
 	var (
 		// These are used for initializing various structs
-		defaultEditorForeground       = vt100.LightCyan
+		defaultEditorForeground       = vt100.LightGreen
 		defaultEditorBackground       = vt100.BackgroundBlack
 		defaultEditorStatusForeground = vt100.Black
 		defaultEditorStatusBackground = vt100.BackgroundGray
@@ -24,6 +24,9 @@ func main() {
 		defaultASCIIGraphicsStatusBackground = vt100.BackgroundMagenta
 
 		statusDuration = 3000 * time.Millisecond
+
+		offset = 0
+		redraw = false
 	)
 
 	flag.Parse()
@@ -40,23 +43,26 @@ func main() {
 
 	// 4 spaces per tab, scroll 10 lines at a time
 	e := NewEditor(4, 10, defaultEditorForeground, defaultEditorBackground)
-	//c.FillBackground(vt100.BackgroundBlue)
-
-	if filename != "" {
-		e.Load(filename)
-		// Draw editor lines from line 0 up to h onto the canvas at 0,0
-		h := int(c.Height())
-		e.WriteLines(c, 0, h, 0, 0)
-	}
-
-	redraw := false
-	offset := 0
 
 	status := NewStatusBar(defaultEditorStatusForeground, defaultEditorStatusBackground, e, statusDuration)
-	c.Draw()
 
-	status.SetMessage("Welcome to " + versionString)
+	// Try to load the filename, ignore errors since giving a new filename is also okay
+	// TODO: Check if the file exists and add proper error reporting
+	err := e.Load(filename)
+	loaded := err == nil
+
+	// Draw editor lines from line 0 up to h onto the canvas at 0,0
+	h := int(c.Height())
+	e.WriteLines(c, 0, h, 0, 0)
+
+	// Friendly status message
+	if loaded {
+		status.SetMessage("Loaded " + filename)
+	} else {
+		status.SetMessage(versionString)
+	}
 	status.Show(c, offset)
+	c.Draw()
 
 	screenCursor := &Cursor{}
 	dataCursor := &Cursor{}
@@ -308,6 +314,8 @@ func main() {
 				status.SetMessage("Saved " + filename)
 				status.Show(c, offset)
 				c.Draw()
+				// Redraw after save, for syntax highlighting
+				redraw = true
 			} else if key == 12 { // ctrl-l, redraw
 				redraw = true
 			} else if key == 11 { // ctrl-k, delete to end of line
