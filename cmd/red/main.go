@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+const versionString = "rED 1.0.0"
+
 func main() {
 
 	var (
@@ -54,7 +56,7 @@ func main() {
 	status := NewStatusBar(defaultEditorStatusForeground, defaultEditorStatusBackground, e, statusDuration)
 	c.Draw()
 
-	status.SetMessage("Welcome to Red 1.0.0")
+	status.SetMessage("Welcome to " + versionString)
 	status.Show(c, offset)
 
 	screenCursor := &Cursor{}
@@ -103,7 +105,7 @@ func main() {
 				} else {
 					dataCursor.X--
 				}
-				dataCursor.Wrap(c)
+				dataCursor.ScreenWrap(c)
 				if atStart {
 					screenCursor.Y--
 					if e.EOLMode() {
@@ -119,7 +121,7 @@ func main() {
 						screenCursor.X--
 					}
 				}
-				screenCursor.Wrap(c)
+				screenCursor.ScreenWrap(c)
 			}
 		case 39: // right arrow
 			atTab := '\t' == e.Get(dataCursor.X, dataCursor.Y)
@@ -135,35 +137,41 @@ func main() {
 					status.SetMessage("End of text")
 					status.Show(c, offset)
 				}
-				dataCursor.Wrap(c)
+				dataCursor.ScreenWrap(c)
 				// Move the screen cursor
 				screenCursor.X = 0
-				screenCursor.Wrap(c)
+				screenCursor.ScreenWrap(c)
 			} else {
 				// Move the data cursor
 				dataCursor.X++
-				dataCursor.Wrap(c)
+				dataCursor.ScreenWrap(c)
 				// Move the screen cursor
 				if atTab && screenCursor.X < (int(c.Width())-e.spacesPerTab) {
 					screenCursor.X += e.spacesPerTab
 				} else {
 					screenCursor.X++
 				}
-				screenCursor.Wrap(c)
+				screenCursor.ScreenWrap(c)
 			}
 		case 38: // up arrow
 			// Move the screen cursor
 			if screenCursor.Y == 0 {
 				// If at the top, don't move up, but scroll the contents
-				status.SetMessage("Top of screen")
+				//redraw, offset = scrollUp(c, offset, status, e, dataCursor, 1)
+				// Output a helpful message
+				if dataCursor.Y == 0 {
+					status.SetMessage("Start of text")
+				} else {
+					status.SetMessage("Top of screen, scroll with ctrl-p")
+				}
 				status.Show(c, offset)
 			} else {
 				// Move the data cursor
 				dataCursor.Y--
-				dataCursor.Wrap(c)
+				dataCursor.ScreenWrap(c)
 				// Move the screen cursor
 				screenCursor.Y--
-				screenCursor.Wrap(c)
+				screenCursor.ScreenWrap(c)
 			}
 			// If the cursor is after the length of the current line, move it to the end of the current line
 			if e.EOLMode() {
@@ -177,17 +185,23 @@ func main() {
 		case 40: // down arrow
 			if !e.EOLMode() || (e.EOLMode() && dataCursor.Y < e.Len()) {
 				// Move the screen cursor
-				if screenCursor.Y == int(c.H()-1) {
+				if screenCursor.Y >= int(c.H()-1) {
 					// If at the bottom, don't move down, but scroll the contents
-					status.SetMessage("Bottom of screen")
+					// redraw, offset = scrollDown(c, offset, status, e, dataCursor, 1)
+					// Output a helpful message
+					if dataCursor.Y == (e.Len() - 1) {
+						status.SetMessage("End of text")
+					} else {
+						status.SetMessage("Bottom of screen, scroll with ctrl-n")
+					}
 					status.Show(c, offset)
 				} else {
 					// Move the data cursor
 					dataCursor.Y++
-					dataCursor.Wrap(c)
+					//dataCursor.ScreenWrap(c)
 					// Move the screen cursor
 					screenCursor.Y++
-					screenCursor.Wrap(c)
+					//screenCursor.ScreenWrap(c)
 				}
 				// If the cursor is after the length of the current line, move it to the end of the current line
 				if e.EOLMode() {
@@ -212,88 +226,44 @@ func main() {
 				}
 			}
 		case 14: // ctrl-n, scroll down
-			h := int(c.H())
-			if offset >= e.Len()-h {
-				// Status message
-				status.SetMessage("End of text")
-				status.Show(c, offset)
-				c.Draw()
-			} else {
-				status.Clear(c)
-				// Find out if we can scroll e.scrollSpeed, or less
-				canScroll := e.scrollSpeed
-				if (offset + canScroll) >= (e.Len() - h) {
-					// Almost at the bottom, we can scroll the remaining lines
-					canScroll = (e.Len() - h) - offset
-				}
-				// Only move the data cursor down one or more lines, do not move the screen cursor
-				dataCursor.Y += canScroll
-				dataCursor.Wrap(c)
-				// Move the scroll offset
-				offset += canScroll
-				// Prepare to redraw
-				vt100.Clear()
-				redraw = true
-			}
+			redraw, offset = scrollDown(c, offset, status, e, dataCursor, e.scrollSpeed)
 		case 16: // ctrl-p, scroll up
-			if offset == 0 {
-				// Can't scroll further up
-				// Status message
-				status.SetMessage("Start of text")
-				status.Show(c, offset)
-				c.Draw()
-			} else {
-				status.Clear(c)
-				// Find out if we can scroll e.scrollSpeed, or less
-				canScroll := e.scrollSpeed
-				if offset-canScroll < 0 {
-					// Almost at the top, we can scroll the remaining lines
-					canScroll = offset
-				}
-				// Only move the data cursor up one or more lines, do not move the screen cursor
-				dataCursor.Y -= canScroll
-				dataCursor.Wrap(c)
-				// Move the scroll offset
-				offset -= canScroll
-				// Prepare to redraw
-				vt100.Clear()
-				redraw = true
-			}
+			redraw, offset = scrollUp(c, offset, status, e, dataCursor, e.scrollSpeed)
 		default:
 			if key == 32 { // space
 				// Data cursor
 				e.Set(dataCursor.X, dataCursor.Y, ' ')
 				dataCursor.X++
-				dataCursor.Wrap(c)
+				dataCursor.ScreenWrap(c)
 				// Screen cursor
 				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), e.fg, e.bg, ' ')
 				screenCursor.X++
-				screenCursor.Wrap(c)
+				screenCursor.ScreenWrap(c)
 			} else if key == 13 { // return
 				// Data cursor
 				dataCursor.Y++
 				dataCursor.X = 0
 				e.CreateLineIfMissing(dataCursor.Y)
-				dataCursor.Wrap(c)
+				dataCursor.ScreenWrap(c)
 				// Screen cursor
 				screenCursor.Y++
 				screenCursor.X = 0
-				screenCursor.Wrap(c)
+				screenCursor.ScreenWrap(c)
 			} else if (key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z') { // letter
 				// Data cursor
 				e.Set(dataCursor.X, dataCursor.Y, rune(key))
 				dataCursor.X++
-				dataCursor.Wrap(c)
+				dataCursor.ScreenWrap(c)
 				// Screen cursor
 				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), e.fg, e.bg, rune(key))
 				screenCursor.X++
-				screenCursor.Wrap(c)
+				screenCursor.ScreenWrap(c)
 			} else if key == 127 { // backspace
 				atTab := '\t' == e.Get(dataCursor.X, dataCursor.Y)
 				// Data cursor
 				if dataCursor.X > 0 {
 					dataCursor.X--
-					dataCursor.Wrap(c)
+					dataCursor.ScreenWrap(c)
 					e.Set(dataCursor.X, dataCursor.Y, ' ')
 					// Screen cursor
 					if screenCursor.X == 0 {
@@ -305,18 +275,18 @@ func main() {
 							screenCursor.X--
 						}
 					}
-					screenCursor.Wrap(c)
+					screenCursor.ScreenWrap(c)
 					c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), e.fg, e.bg, ' ')
 				}
 			} else if key == 9 { // tab
 				// Data cursor
 				e.Set(dataCursor.X, dataCursor.Y, '\t')
 				dataCursor.X++
-				dataCursor.Wrap(c)
+				dataCursor.ScreenWrap(c)
 				// Screen cursor
 				c.Write(uint(screenCursor.X), uint(screenCursor.Y), e.fg, e.bg, "    ")
 				screenCursor.X += e.spacesPerTab
-				screenCursor.Wrap(c)
+				screenCursor.ScreenWrap(c)
 			} else if key == 1 { // ctrl-a, home
 				dataCursor.X = 0
 				screenCursor.X = 0
@@ -345,11 +315,11 @@ func main() {
 				// Data cursor
 				e.Set(dataCursor.X, dataCursor.Y, rune(key))
 				dataCursor.X++
-				dataCursor.Wrap(c)
+				dataCursor.ScreenWrap(c)
 				// Screen cursor
 				c.WriteRune(uint(screenCursor.X), uint(screenCursor.Y), e.fg, e.bg, rune(key))
 				screenCursor.X++
-				screenCursor.Wrap(c)
+				screenCursor.ScreenWrap(c)
 			}
 		}
 		if redraw {
