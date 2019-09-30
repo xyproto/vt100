@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const versionString = "red 2.1.0"
+const versionString = "red 2.1.1"
 
 func main() {
 	var (
@@ -304,9 +304,7 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 		if redraw {
 			// redraw all characters
 			h := int(c.Height())
-			if e.eolMode {
-				e.WriteLines(c, 0+p.Offset(), h+p.Offset(), 0, 0)
-			}
+			e.WriteLines(c, 0+p.Offset(), h+p.Offset(), 0, 0)
 			c.Draw()
 			status.Show(c, p)
 			redraw = false
