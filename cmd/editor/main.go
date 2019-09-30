@@ -9,19 +9,19 @@ import (
 	"time"
 )
 
-const versionString = "red 2.1.1"
+const versionString = "vt100 example editor 1.0.0"
 
 func main() {
 	var (
 		// Color scheme for the "text edit" mode
-		defaultEditorForeground       = vt100.Red
-		defaultEditorBackground       = vt100.BackgroundBlack
+		defaultEditorForeground       = vt100.White
+		defaultEditorBackground       = vt100.BackgroundBlue
 		defaultEditorStatusForeground = vt100.Black
 		defaultEditorStatusBackground = vt100.BackgroundGray
 
 		// Color scheme for the "ASCII graphics" mode
-		defaultASCIIGraphicsForeground       = vt100.LightBlue
-		defaultASCIIGraphicsBackground       = vt100.BackgroundDefault
+		defaultASCIIGraphicsForeground       = vt100.Gray
+		defaultASCIIGraphicsBackground       = vt100.BackgroundBlack
 		defaultASCIIGraphicsStatusForeground = vt100.White
 		defaultASCIIGraphicsStatusBackground = vt100.BackgroundMagenta
 
@@ -75,7 +75,7 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 	c := vt100.NewCanvas()
 
 	// 4 spaces per tab, scroll 10 lines at a time
-	e := NewEditor(4, 10, defaultEditorForeground, defaultEditorBackground)
+	e := NewEditor(4, 10, defaultEditorForeground, defaultEditorBackground, false)
 
 	status := NewStatusBar(defaultEditorStatusForeground, defaultEditorStatusBackground, e, statusDuration)
 
@@ -220,76 +220,79 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 			if e.EOLMode() && p.AfterLineContents(e) {
 				p.End(e)
 			}
+		case 8: // ctrl-h, toggle highlight
+			e.ToggleHighlight()
+			redraw = true
+		case 32: // space
+			// Place a space
+			p.SetRune(e, ' ')
+			p.WriteRune(c, e)
+			// Move to the next position
+			p.Next(c, e)
+		case 13: // return
+			dataCursor := p.DataCursor(e)
+			e.CreateLineIfMissing(dataCursor.Y + 1)
+			// Move down and home
+			p.Down(c)
+			p.Home(e)
+		case 127: // backspace
+			// Move back
+			p.Prev(c, e)
+			// Type a blank
+			p.SetRune(e, ' ')
+			p.WriteRune(c, e)
+			// Delete the blank
+			dataCursor := p.DataCursor(e)
+			e.Delete(dataCursor.X, dataCursor.Y)
+		case 9: // tab
+			// Place a tab
+			p.SetRune(e, '\t')
+			// Write the spaces that represent the tab
+			p.WriteTab(c, e)
+			// Move to the next position
+			p.Next(c, e)
+		case 1: // ctrl-a, home
+			p.Home(e)
+		case 5: // ctrl-e, end
+			p.End(e)
+		case 4: // ctrl-d, delete
+			dataCursor := p.DataCursor(e)
+			e.Delete(dataCursor.X, dataCursor.Y)
+			redraw = true
+		case 19: // ctrl-s, save
+			err := e.Save(filename, e.eolMode)
+			if err != nil {
+				tty.Close()
+				vt100.Close()
+				fmt.Fprintln(os.Stderr, vt100.Red.Get(err.Error()))
+				os.Exit(1)
+			}
+			// TODO: Go to the end of the document at this point, if needed
+			// Lines may be trimmed for whitespace, so move to the end, if needed
+			if e.EOLMode() && p.AfterLineContents(e) {
+				p.End(e)
+			}
+			// Status message
+			status.SetMessage("Saved " + filename)
+			status.Show(c, p)
+			c.Draw()
+			// Redraw after save, for syntax highlighting
+			redraw = true
+		case 12: // ctrl-l, redraw
+			redraw = true
+		case 11: // ctrl-k, delete to end of line
+			dataCursor := p.DataCursor(e)
+			e.DeleteRestOfLine(dataCursor.X, dataCursor.Y)
+			vt100.Do("Erase End of Line")
+			redraw = true
 		default:
-			if key == 32 { // space
-				// Place a space
-				p.SetRune(e, ' ')
-				p.WriteRune(c, e)
-				// Move to the next position
-				p.Next(c, e)
-			} else if key == 13 { // return
-				dataCursor := p.DataCursor(e)
-				e.CreateLineIfMissing(dataCursor.Y + 1)
-				// Move down and home
-				p.Down(c)
-				p.Home(e)
-			} else if (key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z') { // letter
+			if (key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z') { // letter
 				// Place a letter
 				//e.Insert(p, rune(key))
 				p.SetRune(e, rune(key))
 				p.WriteRune(c, e)
 				// Move to the next position
 				p.Next(c, e)
-			} else if key == 127 { // backspace
-				// Move back
-				p.Prev(c, e)
-				// Type a blank
-				p.SetRune(e, ' ')
-				p.WriteRune(c, e)
-				// Delete the blank
-				dataCursor := p.DataCursor(e)
-				e.Delete(dataCursor.X, dataCursor.Y)
-			} else if key == 9 { // tab
-				// Place a tab
-				p.SetRune(e, '\t')
-				// Write the spaces that represent the tab
-				p.WriteTab(c, e)
-				// Move to the next position
-				p.Next(c, e)
-			} else if key == 1 { // ctrl-a, home
-				p.Home(e)
-			} else if key == 5 { // ctrl-e, end
-				p.End(e)
-			} else if key == 4 { // ctrl-d, delete
-				dataCursor := p.DataCursor(e)
-				e.Delete(dataCursor.X, dataCursor.Y)
-				redraw = true
-			} else if key == 19 { // ctrl-s, save
-				err := e.Save(filename, e.eolMode)
-				if err != nil {
-					tty.Close()
-					vt100.Close()
-					fmt.Fprintln(os.Stderr, vt100.Red.Get(err.Error()))
-					os.Exit(1)
-				}
-				// TODO: Go to the end of the document at this point, if needed
-				// Lines may be trimmed for whitespace, so move to the end, if needed
-				if e.EOLMode() && p.AfterLineContents(e) {
-					p.End(e)
-				}
-				// Status message
-				status.SetMessage("Saved " + filename)
-				status.Show(c, p)
-				c.Draw()
-				// Redraw after save, for syntax highlighting
-				redraw = true
-			} else if key == 12 { // ctrl-l, redraw
-				redraw = true
-			} else if key == 11 { // ctrl-k, delete to end of line
-				dataCursor := p.DataCursor(e)
-				e.DeleteRestOfLine(dataCursor.X, dataCursor.Y)
-				vt100.Do("Erase End of Line")
-				redraw = true
 			} else if key != 0 { // any other key
 				// Place *something*
 				r := rune(key)

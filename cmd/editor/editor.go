@@ -20,6 +20,7 @@ type Editor struct {
 	bg           vt100.AttributeColor
 	spacesPerTab int // how many spaces per tab character
 	scrollSpeed  int // how many lines to scroll, when scrolling
+	highlight    bool
 }
 
 // Takes:
@@ -27,7 +28,7 @@ type Editor struct {
 // * how many lines the editor should scroll when ctrl-n or ctrl-p are pressed (typically 1, 5 or 10)
 // * foreground color attributes
 // * background color attributes
-func NewEditor(spacesPerTab, scrollSpeed int, fg, bg vt100.AttributeColor) *Editor {
+func NewEditor(spacesPerTab, scrollSpeed int, fg, bg vt100.AttributeColor, highlight bool) *Editor {
 	e := &Editor{}
 	e.lines = make(map[int][]rune)
 	e.eolMode = true
@@ -35,6 +36,7 @@ func NewEditor(spacesPerTab, scrollSpeed int, fg, bg vt100.AttributeColor) *Edit
 	e.bg = bg
 	e.spacesPerTab = spacesPerTab
 	e.scrollSpeed = scrollSpeed
+	e.highlight = highlight
 	return e
 }
 
@@ -218,7 +220,7 @@ func (e *Editor) WriteLines(c *vt100.Canvas, fromline, toline, cx, cy int) error
 			// Shorten the line a bit if it's too wide
 			line = line[:w]
 		}
-		if e.eolMode {
+		if e.highlight {
 			// Output a syntax highlighted line
 			vt100.SetXY(uint(cx+counter), uint(cy+y))
 			if textWithTags, err := syntax.AsText([]byte(line)); err != nil {
@@ -334,4 +336,8 @@ func (e *Editor) SetColors(fg, bg vt100.AttributeColor) {
 // WordCount returns the number of spaces in the text + 1
 func (e *Editor) WordCount() int {
 	return strings.Count(e.String(), " ") + 1
+}
+
+func (e *Editor) ToggleHighlight() {
+	e.highlight = !e.highlight
 }
