@@ -33,18 +33,18 @@ func (sb *StatusBar) SetMessage(msg string) {
 
 func (sb *StatusBar) Clear(c *vt100.Canvas) {
 	sb.msg = ""
-	// place all characters back in the canvas
+	// place all characters back in the canvas, but only for the last line
 	h := int(c.H())
-	sb.editor.WriteLines(c, 0+sb.offset, h+sb.offset, 0, 0)
+	sb.editor.WriteLines(c, (h-1)+sb.offset, h+sb.offset, 0, h-1)
 	//c.Draw()
 }
 
 // Draw a status message, then clear it after a configurable delay
-func (sb *StatusBar) Show(c *vt100.Canvas, offset int) {
+func (sb *StatusBar) Show(c *vt100.Canvas, p *Position) {
 	if sb.msg == "" {
 		return
 	}
-	sb.Draw(c, offset)
+	sb.Draw(c, p.Offset())
 	go func() {
 		time.Sleep(sb.show)
 		sb.Clear(c)

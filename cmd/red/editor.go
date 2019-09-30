@@ -166,20 +166,39 @@ func (e *Editor) Load(filename string) error {
 }
 
 func (e *Editor) Save(filename string, stripTrailingSpaces bool) error {
-	data := []byte(e.String())
+	var data []byte
 	if stripTrailingSpaces {
-		// Strip trailing spaces and write to file
-		byteLines := bytes.Split(data, []byte{'\n'})
-		for i := range byteLines {
-			byteLines[i] = bytes.TrimRightFunc(byteLines[i], unicode.IsSpace)
+		// Strip trailing spaces
+		for i := 0; i < e.Len(); i++ {
+			e.TrimSpaceRight(i)
 		}
-		// Join the lines and then remove trailing blank lines
-		data = bytes.TrimRightFunc(bytes.Join(byteLines, []byte{'\n'}), unicode.IsSpace)
-		// But add a final newline
-		data = append(data, []byte{'\n'}...)
+		// Skip trailing newlines
+		data = bytes.TrimRightFunc([]byte(e.String()), unicode.IsSpace)
+		// Add a final newline
+		data = append(data, '\n')
+	} else {
+		data = []byte(e.String())
 	}
 	// Write the data to file
 	return ioutil.WriteFile(filename, data, 0664)
+}
+
+// Remove spaces from the end of the given line number
+func (e *Editor) TrimSpaceRight(n int) {
+	_, ok := e.lines[n]
+	if !ok {
+		return
+	}
+	lastIndex := len(e.lines[n]) - 1
+	// find the last non-space position
+	for x := lastIndex; x > 0; x-- {
+		if !unicode.IsSpace(e.lines[n][x]) {
+			lastIndex = x
+			break
+		}
+	}
+	// Remove the trailing spaces
+	e.lines[n] = e.lines[n][:(lastIndex + 1)]
 }
 
 // Write editor lines from "fromline" to and up to "toline" to the canvas at cx, cy
@@ -248,6 +267,26 @@ func (e *Editor) DeleteRestOfLine(x, y int) {
 		return
 	}
 	e.lines[y] = e.lines[y][:x]
+}
+
+func (e *Editor) Delete(x, y int) {
+	if e.lines == nil {
+		e.lines = make(map[int][]rune)
+	}
+	_, ok := e.lines[y]
+	if !ok {
+		return
+	}
+	if x >= len(e.lines[y]) {
+		return
+	}
+	// Is it the last index?
+	if x == len(e.lines[y])-1 {
+		e.lines[y] = e.lines[y][:x]
+		return
+	}
+	// Delete this character
+	e.lines[y] = append(e.lines[y][:x], e.lines[y][x+1:]...)
 }
 
 func (e *Editor) CreateLineIfMissing(n int) {
