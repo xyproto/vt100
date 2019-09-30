@@ -80,3 +80,70 @@ func scrollUp(c *vt100.Canvas, offset int, status *StatusBar, e *Editor, dataCur
 	}
 	return redraw, offset
 }
+
+type Position struct {
+	sx     int // the position of the cursor in the current scrollview
+	sy     int // the position of the cursor in the current scrollview
+	scroll int // how far one has scrolled
+}
+
+func position2datacursor(p *Position, e *Editor) *Cursor {
+	var dataX int
+	// the y position in the data is the lines scrolled + current screen cursor Y position
+	dataY := p.scroll + p.sy
+	// get the current line of text
+	line := e.Line(dataY)
+	screenCounter := 0 // counter the characters on the screen
+	// loop, while also keeping track of tab expansion
+	for i, r := range line {
+		if r == '\t' {
+			screenCounter += e.spacesPerTab
+		} else {
+			screenCounter += 1
+		}
+		// When we reached the correct screen position, use i as the data position
+		if screenCounter == p.sx {
+			dataX = i
+			break
+		}
+	}
+	// Return the data cursor
+	return &Cursor{dataX, dataY}
+}
+
+func (p *Position) ScreenX() int {
+	return p.sx
+}
+
+func (p *Position) ScreenY() int {
+	return p.sy
+}
+
+func (p *Position) ScrollOffset() int {
+	return p.scroll
+}
+
+func (p *Position) DataCursor(e *Editor) *Cursor {
+	return position2datacursor(p, e)
+}
+
+func (p *Position) ScreenCursor() *Cursor {
+	return &Cursor{p.sx, p.sy}
+}
+
+func (p *Position) SetScreenScursor(c *Cursor) {
+	p.sx = c.X
+	p.sy = c.Y
+}
+
+func (p *Position) SetScreenX(x int) {
+	p.sx = x
+}
+
+func (p *Position) SetScreenY(y int) {
+	p.sy = y
+}
+
+func (p *Position) SetOffset(offset int) {
+	p.scroll = offset
+}
