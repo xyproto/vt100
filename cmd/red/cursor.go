@@ -16,6 +16,9 @@ type Position struct {
 }
 
 func position2datacursor(p *Position, e *Editor) *Cursor {
+	if !e.eolMode {
+		return &Cursor{p.sx, p.scroll + p.sy}
+	}
 	var dataX int
 	// the y position in the data is the lines scrolled + current screen cursor Y position
 	dataY := p.scroll + p.sy
@@ -111,14 +114,15 @@ func (p *Position) End(e *Editor) {
 // Move to the next position in the contents
 func (p *Position) Next(c *vt100.Canvas, e *Editor) error {
 	dataCursor := p.DataCursor(e)
-	atTab := '\t' == e.Get(dataCursor.X, dataCursor.Y)
+	atTab := e.eolMode && ('\t' == e.Get(dataCursor.X, dataCursor.Y))
 	if atTab {
 		p.sx += e.spacesPerTab
 	} else {
 		p.sx++
 	}
 	// Did we move too far on this line?
-	if p.AfterLineContentsPlusOne(e) {
+	w := int(c.W())
+	if (e.eolMode && p.AfterLineContentsPlusOne(e)) || (!e.eolMode && p.sx >= w) {
 		// Undo the move
 		if atTab {
 			p.sx -= e.spacesPerTab
@@ -126,12 +130,14 @@ func (p *Position) Next(c *vt100.Canvas, e *Editor) error {
 			p.sx--
 		}
 		// Move down
-		err := p.Down(c)
-		if err != nil {
-			return err
+		if e.eolMode {
+			err := p.Down(c)
+			if err != nil {
+				return err
+			}
+			// Move to the start of the line
+			p.sx = 0
 		}
-		// Move to the start of the line
-		p.sx = 0
 	}
 	return nil
 }
@@ -141,7 +147,7 @@ func (p *Position) Prev(c *vt100.Canvas, e *Editor) error {
 	dataCursor := p.DataCursor(e)
 	atTab := false
 	if dataCursor.X > 0 {
-		atTab = '\t' == e.Get(dataCursor.X-1, dataCursor.Y)
+		atTab = e.eolMode && ('\t' == e.Get(dataCursor.X-1, dataCursor.Y))
 	}
 	// If at a tab character, move a few more posisions
 	if atTab {
@@ -157,12 +163,14 @@ func (p *Position) Prev(c *vt100.Canvas, e *Editor) error {
 		} else {
 			p.sx++
 		}
-		// Move up, and to the end of the line above
-		err := p.Up()
-		if err != nil {
-			return err
+		// Move up, and to the end of the line above, if in EOL mode
+		if e.eolMode {
+			err := p.Up()
+			if err != nil {
+				return err
+			}
+			p.End(e)
 		}
-		p.End(e)
 	}
 	return nil
 }

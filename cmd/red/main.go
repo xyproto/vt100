@@ -13,14 +13,15 @@ const versionString = "red 2.0.0"
 
 func main() {
 	var (
-		// These are used for initializing various structs
+		// Color scheme for the "text edit" mode
 		defaultEditorForeground       = vt100.Red
 		defaultEditorBackground       = vt100.BackgroundBlack
 		defaultEditorStatusForeground = vt100.Black
 		defaultEditorStatusBackground = vt100.BackgroundGray
 
-		defaultASCIIGraphicsForeground       = vt100.Yellow
-		defaultASCIIGraphicsBackground       = vt100.BackgroundBlue
+		// Color scheme for the "ASCII graphics" mode
+		defaultASCIIGraphicsForeground       = vt100.LightBlue
+		defaultASCIIGraphicsBackground       = vt100.BackgroundDefault
 		defaultASCIIGraphicsStatusForeground = vt100.White
 		defaultASCIIGraphicsStatusBackground = vt100.BackgroundMagenta
 
@@ -124,17 +125,19 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 		case 17: // ctrl-q, quit
 			quit = true
 		case 6: // ctrl-f
-			err := e.Save("/tmp/_tmp.go", true)
-			if err == nil {
-				cmd := exec.Command("/usr/bin/gofmt", "-w", "/tmp/_tmp.go")
-				err = cmd.Run()
+			if e.eolMode {
+				err := e.Save("/tmp/_tmp.go", true)
 				if err == nil {
-					e.Load("/tmp/_tmp.go")
+					cmd := exec.Command("/usr/bin/gofmt", "-w", "/tmp/_tmp.go")
+					err = cmd.Run()
+					if err == nil {
+						e.Load("/tmp/_tmp.go")
+					}
+					cmd = exec.Command("/usr/bin/rm", "-f", "/tmp/_tmp.go")
+					_ = cmd.Run()
 				}
-				cmd = exec.Command("/usr/bin/rm", "-f", "/tmp/_tmp.go")
-				_ = cmd.Run()
+				redraw = true
 			}
-			redraw = true
 		case 7: // ctrl-g, status information
 			dataCursor := p.DataCursor(e)
 			currentRune := p.Rune(e)
@@ -232,6 +235,7 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 				p.Home(e)
 			} else if (key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z') { // letter
 				// Place a letter
+				//e.Insert(p, rune(key))
 				p.SetRune(e, rune(key))
 				p.WriteRune(c, e)
 				// Move to the next position
@@ -261,7 +265,7 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 				e.Delete(dataCursor.X, dataCursor.Y)
 				redraw = true
 			} else if key == 19 { // ctrl-s, save
-				err := e.Save(filename, true)
+				err := e.Save(filename, e.eolMode)
 				if err != nil {
 					tty.Close()
 					vt100.Close()
@@ -300,7 +304,9 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 		if redraw {
 			// redraw all characters
 			h := int(c.Height())
-			e.WriteLines(c, 0+p.Offset(), h+p.Offset(), 0, 0)
+			if e.eolMode {
+				e.WriteLines(c, 0+p.Offset(), h+p.Offset(), 0, 0)
+			}
 			c.Draw()
 			status.Show(c, p)
 			redraw = false

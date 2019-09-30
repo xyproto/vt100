@@ -289,6 +289,33 @@ func (e *Editor) Delete(x, y int) {
 	e.lines[y] = append(e.lines[y][:x], e.lines[y][x+1:]...)
 }
 
+func (e *Editor) Insert(p *Position, r rune) {
+	dataCursor := p.DataCursor(e)
+	x := dataCursor.X
+	y := dataCursor.Y
+	if e.lines == nil {
+		e.lines = make(map[int][]rune)
+	}
+	_, ok := e.lines[y]
+	if !ok {
+		// Can only insert in the existing block of text
+		return
+	}
+	if len(e.lines[y]) < x {
+		// Can only insert in the existing block of text
+		return
+	}
+	newline := make([]rune, len(e.lines[y])+1)
+	for i := 0; i < x; i++ {
+		newline[i] = e.lines[y][i]
+	}
+	newline[x] = r
+	for i := x + 1; i < len(newline); i++ {
+		newline[i] = e.lines[y][i-1]
+	}
+	e.lines[y] = newline
+}
+
 func (e *Editor) CreateLineIfMissing(n int) {
 	if e.lines == nil {
 		e.lines = make(map[int][]rune)
