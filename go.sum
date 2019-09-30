@@ -9,8 +9,6 @@ github.com/sourcegraph/annotate v0.0.0-20160123013949-f4cad6c6324d h1:yKm7XZV6j9
 github.com/sourcegraph/annotate v0.0.0-20160123013949-f4cad6c6324d/go.mod h1:UdhH50NIW0fCiwBSr0co2m7BnFLdv4fQTgdqdJTHFeE=
 github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e h1:qpG93cPwA5f7s/ZPBJnGOYQNK/vKsaDaseuKT5Asee8=
 github.com/sourcegraph/syntaxhighlight v0.0.0-20170531221838-bd320f5d308e/go.mod h1:HuIsMU8RRBOtsCgI77wP899iHVBQpCmg4ErYMZB+2IA=
-github.com/xyproto/syntax v0.0.0-20190927094555-097e1b369e57 h1:CcMHXhFAOloD6/iGWyIb3XTwnhXdW/fTtkbHitd3HQI=
-github.com/xyproto/syntax v0.0.0-20190927094555-097e1b369e57/go.mod h1:mCJxUY00r+o4tVnC800hsbzKKMdyLYEmZtn3Fd5RKtw=
 github.com/xyproto/syntax v0.0.0-20190927130316-33ad839f30fd h1:wXjYSApCc7FPFvZ0G9vPZE1bYnStg2I4j4N97YSM75c=
 github.com/xyproto/syntax v0.0.0-20190927130316-33ad839f30fd/go.mod h1:mCJxUY00r+o4tVnC800hsbzKKMdyLYEmZtn3Fd5RKtw=
 github.com/xyproto/syntax v0.0.0-20190927172147-1aa81d747d75 h1:OjnL+g6Q4+SAz65Cr9l2lfriej/KBarZ8G6FYSOS9Sg=
