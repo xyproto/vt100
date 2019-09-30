@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-const versionString = "red 2.0.0"
+const versionString = "red 2.1.0"
 
 func main() {
 	var (
