@@ -148,17 +148,17 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 				}
 			}
 			status.Show(c, p)
-		case 37: // left arrow
+		case 252: // left arrow
 			p.Prev(c, e)
 			if e.EOLMode() && p.AfterLineContents(e) {
 				p.End(e)
 			}
-		case 39: // right arrow
+		case 254: // right arrow
 			p.Next(c, e)
 			if e.EOLMode() && p.AfterLineContents(e) {
 				p.End(e)
 			}
-		case 38: // up arrow
+		case 253: // up arrow
 			dataCursor := p.DataCursor(e)
 			// Move the screen cursor
 			if p.Y() == 0 {
@@ -179,7 +179,7 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 			if e.EOLMode() && p.AfterLineContents(e) {
 				p.End(e)
 			}
-		case 40: // down arrow
+		case 255: // down arrow
 			dataCursor := p.DataCursor(e)
 			if !e.EOLMode() || (e.EOLMode() && dataCursor.Y < e.Len()) {
 				// Move the position down in the current screen
