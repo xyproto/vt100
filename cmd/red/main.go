@@ -5,25 +5,26 @@ import (
 	"fmt"
 	"github.com/xyproto/vt100"
 	"os"
+	"os/exec"
 	"time"
 )
 
-const versionString = "rED 2.0.0"
+const versionString = "red 2.0.0"
 
 func main() {
 	var (
 		// These are used for initializing various structs
-		defaultEditorForeground       = vt100.LightBlue
+		defaultEditorForeground       = vt100.Red
 		defaultEditorBackground       = vt100.BackgroundBlack
 		defaultEditorStatusForeground = vt100.Black
 		defaultEditorStatusBackground = vt100.BackgroundGray
 
-		defaultASCIIGraphicsForeground       = vt100.LightYellow
+		defaultASCIIGraphicsForeground       = vt100.Yellow
 		defaultASCIIGraphicsBackground       = vt100.BackgroundBlue
 		defaultASCIIGraphicsStatusForeground = vt100.White
 		defaultASCIIGraphicsStatusBackground = vt100.BackgroundMagenta
 
-		statusDuration = 3000 * time.Millisecond
+		statusDuration = 2200 * time.Millisecond
 
 		//offset = 0
 		redraw = false
@@ -54,6 +55,7 @@ ctrl-k to delete characters to the end of the line
 ctrl-s to save (don't use this on files you care about!)
 ctrl-g to show cursor positions, current letter and word count
 ctrl-d to delete a single character
+ctrl-f to format the current file with "go fmt" (but not save the result).
 esc to toggle "text edit mode" and "ASCII graphics mode"
 
 `)
@@ -121,6 +123,18 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 			}
 		case 17: // ctrl-q, quit
 			quit = true
+		case 6: // ctrl-f
+			err := e.Save("/tmp/_tmp.go", true)
+			if err == nil {
+				cmd := exec.Command("/usr/bin/gofmt", "-w", "/tmp/_tmp.go")
+				err = cmd.Run()
+				if err == nil {
+					e.Load("/tmp/_tmp.go")
+				}
+				cmd = exec.Command("/usr/bin/rm", "-f", "/tmp/_tmp.go")
+				_ = cmd.Run()
+			}
+			redraw = true
 		case 7: // ctrl-g, status information
 			dataCursor := p.DataCursor(e)
 			currentRune := p.Rune(e)

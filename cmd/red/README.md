@@ -7,6 +7,7 @@ For a more modern editor, also written in Go, look into [micro](https://github.c
 ## Features and limitations
 
 * Has syntax highlighting for Go code.
+* Can run `gofmt`.
 * Can be used for drawing "ASCII graphics".
 * The editor must be given a filename at start.
 * The editor is always in "overwrite mode". Characters are never inserted so that other characters are moved around, except for `ctrl-d` for deleting a character.
@@ -15,6 +16,7 @@ For a more modern editor, also written in Go, look into [micro](https://github.c
 * Can handle text that contains the tab character (`\t`).
 * Keys like `Home` and `End` are not even registered by the key handler (but `ctrl-a` and `ctrl-e` works).
 * There is no undo.
+* Expects utilities like `gofmt` to be in `/usr/bin`.
 
 ## Known bugs
 
@@ -35,4 +37,5 @@ For a more modern editor, also written in Go, look into [micro](https://github.c
 * `ctrl-s` to save (don't use this on files you care about!)
 * `ctrl-g` to show cursor positions, current letter and word count
 * `ctrl-d` to delete a single character
+* `ctrl-f` to format the current file with `go fmt` (but not save the result).
 * `esc` to toggle "text edit mode" and "ASCII graphics mode"
