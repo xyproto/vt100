@@ -16,7 +16,8 @@ func main() {
 	c.Write(12, 12, vt100.LightGreen, vt100.BackgroundDefault, "hi")
 	c.Write(15, 15, vt100.White, vt100.BackgroundMagenta, "floating")
 	c.PlotColor(12, 17, vt100.LightRed, '*')
-	c.PlotColor(10, 20, vt100.LightBlue, '?')
+	c.PlotColor(10, 20, vt100.LightBlue, 'ø')
+	c.PlotColor(11, 20, vt100.LightBlue, 'l')
 
 	// Draw the contents of the canvas
 	c.Draw()

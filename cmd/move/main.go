@@ -123,7 +123,7 @@ func main() {
 	running := true
 	for running {
 
-		vt100.Clear()
+		//vt100.Clear()
 
 		// Draw elements in their new positions
 		draw.Lock()
@@ -146,13 +146,13 @@ func main() {
 		// Handle events
 		draw.Lock()
 		switch tty.Key() {
-		case 38: // Up
+		case 253: // Up
 			moved = bob.Up(c)
-		case 40: // Down
+		case 255: // Down
 			moved = bob.Down(c)
-		case 39: // Right
+		case 254: // Right
 			moved = bob.Right(c)
-		case 37: // Left
+		case 252: // Left
 			moved = bob.Left(c)
 		case 27, 113: // ESC or q
 			running = false

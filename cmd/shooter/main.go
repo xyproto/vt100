@@ -98,19 +98,19 @@ func main() {
 		// Handle events
 		key = tty.Key()
 		switch key {
-		case 38: // Up
+		case 253: // Up
 			resizeMut.Lock()
 			moved = bob.Up(c)
 			resizeMut.Unlock()
-		case 40: // Down
+		case 255: // Down
 			resizeMut.Lock()
 			moved = bob.Down(c)
 			resizeMut.Unlock()
-		case 39: // Right
+		case 254: // Right
 			resizeMut.Lock()
 			moved = bob.Right(c)
 			resizeMut.Unlock()
-		case 37: // Left
+		case 252: // Left
 			resizeMut.Lock()
 			moved = bob.Left(c)
 			resizeMut.Unlock()
@@ -143,9 +143,9 @@ func main() {
 		}
 
 		// If a key was pressed, clear the screen, just in case it shifted
-		if key != 0 {
-			vt100.Clear()
-		}
+		//if key != 0 {
+		//	vt100.Clear()
+		//}
 
 		// Change state
 		resizeMut.Lock()

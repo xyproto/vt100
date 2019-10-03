@@ -70,6 +70,10 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 
 	running := true
 
+	vt100.Clear()
+	c.Clear()
+	c.Draw()
+
 	for running {
 
 		// Draw elements in their new positions
@@ -97,11 +101,11 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 		// Handle events
 		key := tty.Key()
 		switch key {
-		case 38, 107, 16: // Up, k or ctrl-p
+		case 253, 107, 16: // Up, k or ctrl-p
 			resizeMut.Lock()
 			menu.Up(c)
 			resizeMut.Unlock()
-		case 40, 106, 14: // Down, j or ctrl-n
+		case 255, 106, 14: // Down, j or ctrl-n
 			resizeMut.Lock()
 			menu.Down(c)
 			resizeMut.Unlock()
@@ -116,7 +120,7 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 		case 27, 113: // ESC or q
 			running = false
 			break
-		case 32, 13, 39: // Space, Return or Right // 108 is l
+		case 32, 13, 254: // Space, Return or Right // 108 is l
 			resizeMut.Lock()
 			menu.Select()
 			resizeMut.Unlock()
