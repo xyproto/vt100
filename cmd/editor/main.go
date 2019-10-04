@@ -110,11 +110,13 @@ esc to toggle "text edit mode" and "ASCII graphics mode"
 		case 27: // esc
 			e.ToggleEOLMode()
 			if e.EOLMode() {
-				e.SetColors(defaultEditorForeground, defaultEditorBackground)
-				status.SetColors(defaultEditorStatusForeground, defaultEditorStatusBackground)
-				c.FillBackground(e.bg)
-				status.SetMessage("Text edit mode")
-				redraw = true
+				// make it easier to quit, since this is just a simple editor example
+				quit = true
+				//e.SetColors(defaultEditorForeground, defaultEditorBackground)
+				//status.SetColors(defaultEditorStatusForeground, defaultEditorStatusBackground)
+				//c.FillBackground(e.bg)
+				//status.SetMessage("Text edit mode")
+				//redraw = true
 			} else {
 				e.SetColors(defaultASCIIGraphicsForeground, defaultASCIIGraphicsBackground)
 				status.SetColors(defaultASCIIGraphicsStatusForeground, defaultASCIIGraphicsStatusBackground)
