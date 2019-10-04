@@ -19,6 +19,8 @@ func main() {
 	c.PlotColor(10, 20, vt100.LightBlue, 'ø')
 	c.PlotColor(11, 20, vt100.LightBlue, 'l')
 
+	c.WriteString(10, 21, vt100.White, vt100.BackgroundRed, "øl")
+
 	// Draw the contents of the canvas
 	c.Draw()
 
