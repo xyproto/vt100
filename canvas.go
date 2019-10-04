@@ -41,7 +41,7 @@ func NewCanvas() *Canvas {
 func (c *Canvas) FillBackground(bg AttributeColor) {
 	c.mut.Lock()
 	converted := bg.Background()
-	for i, _ := range c.chars {
+	for i := range c.chars {
 		c.chars[i].bg = converted
 		c.chars[i].drawn = false
 	}
@@ -51,7 +51,7 @@ func (c *Canvas) FillBackground(bg AttributeColor) {
 // Change the foreground color for each character
 func (c *Canvas) Fill(fg AttributeColor) {
 	c.mut.Lock()
-	for i, _ := range c.chars {
+	for i := range c.chars {
 		c.chars[i].fg = fg
 	}
 	c.mut.Unlock()
