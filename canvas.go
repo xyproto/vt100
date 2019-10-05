@@ -175,6 +175,8 @@ func (c *Canvas) Draw() {
 	defer c.mut.Unlock()
 	// Build a string per line
 	var line strings.Builder
+	//line.WriteString(strings.Repeat(" ", int(c.w)))
+	//lastY := c.h - 1
 	for y := uint(0); y < c.h; y++ {
 		anythingChangedForThisLine := false
 		for x := uint(0); x < c.w; x++ {
@@ -184,7 +186,8 @@ func (c *Canvas) Draw() {
 				break
 			}
 		}
-		if !anythingChangedForThisLine {
+		if !anythingChangedForThisLine && y > 0 {
+			line.WriteString(strings.Repeat(" ", int(c.w)))
 			continue
 		}
 		var lastfg, lastbg AttributeColor
@@ -244,12 +247,16 @@ func (c *Canvas) Draw() {
 				line.WriteRune(' ')
 			}
 		}
-		line.WriteString(NoColor())
-		SetXY(0, y)
-		fmt.Print(line.String())
-		line.Reset()
+		//if y < lastY {
+		//	line.WriteRune('\n')
+		//}
 	}
-	SetXY(c.w-1, c.h-1)
+	//line.WriteString(NoColor())
+	//SetLineWrap(false)
+	SetXY(0, 0)
+	//SetLineWrap(false)
+	fmt.Println(line.String())
+	//SetXY(c.w-1, c.h-1)
 }
 
 func (c *Canvas) Redraw() {

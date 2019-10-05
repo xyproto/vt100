@@ -115,6 +115,7 @@ func main() {
 			moved = bob.Left(c)
 			resizeMut.Unlock()
 		case 27, 113: // ESC or q
+			log.Fatalf("Hi, x, y = (%d, %d)\n", bob.x, bob.y)
 			running = false
 			break
 		case 32: // Space
