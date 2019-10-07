@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	//"io/ioutil"
 )
 
 type Char struct {
@@ -173,89 +174,36 @@ func (c *Canvas) H() uint {
 func (c *Canvas) Draw() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	// Build a string per line
-	var line strings.Builder
-	//line.WriteString(strings.Repeat(" ", int(c.w)))
-	//lastY := c.h - 1
+	var (
+		lastfg, lastbg AttributeColor
+		// Build a string per line
+		line strings.Builder
+		ch *Char
+	)
+	//line.WriteString("\n\n")
 	for y := uint(0); y < c.h; y++ {
-		anythingChangedForThisLine := false
 		for x := uint(0); x < c.w; x++ {
-			ch := &((*c).chars[y*c.w+x])
-			if !ch.drawn {
-				anythingChangedForThisLine = true
-				break
+			ch = &((*c).chars[y*c.w+x])
+			// Write the color attributes, if they changed
+			if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
+				line.WriteString(ch.fg.Combine(ch.bg).String())
 			}
-		}
-		if !anythingChangedForThisLine && y > 0 {
-			line.WriteString(strings.Repeat(" ", int(c.w)))
-			continue
-		}
-		var lastfg, lastbg AttributeColor
-		for x := uint(0); x < c.w; x++ {
-			ch := &((*c).chars[y*c.w+x])
-			if !ch.drawn {
-				if len(ch.bg) != 0 {
-					if ch.s == rune(0) || len(string(ch.s)) == 0 {
-						// Write the color attributes, if they changed
-						if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
-							line.WriteString(ch.fg.Combine(ch.bg).String())
-						}
-						lastfg = ch.fg
-						lastbg = ch.bg
-						// Write a blank
-						line.WriteRune(' ')
-					} else {
-						// Write the color attributes, if they changed
-						if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
-							line.WriteString(ch.fg.Combine(ch.bg).String())
-						}
-						lastfg = ch.fg
-						lastbg = ch.bg
-						// Write the rune
-						line.WriteRune(ch.s)
-					}
-				} else {
-					if ch.s == rune(0) || len(string(ch.s)) == 0 {
-						// Write the color attributes, if they changed
-						if !ch.fg.Equal(lastfg) {
-							line.WriteString(ch.fg.String())
-						}
-						lastfg = ch.fg
-						lastbg = ch.bg
-						// Write a blank
-						line.WriteRune(' ')
-					} else {
-						// Write the color attributes, if they changed
-						if !ch.fg.Equal(lastfg) {
-							line.WriteString(ch.fg.String())
-						}
-						lastfg = ch.fg
-						lastbg = ch.bg
-						// Write the rune
-						line.WriteRune(ch.s)
-					}
-				}
-				ch.drawn = true
-			} else {
-				// Write the color attributes, if they changed
-				if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
-					line.WriteString(ch.fg.Combine(ch.bg).String())
-				}
-				lastfg = ch.fg
-				lastbg = ch.bg
+			lastfg = ch.fg
+			lastbg = ch.bg
+			if ch.s == rune(0) || len(string(ch.s)) == 0 {
 				// Write a blank
 				line.WriteRune(' ')
+			} else {
+				// Write the rune
+				line.WriteRune(ch.s)
 			}
 		}
-		//if y < lastY {
-		//	line.WriteRune('\n')
-		//}
 	}
-	//line.WriteString(NoColor())
 	//SetLineWrap(false)
 	SetXY(0, 0)
 	//SetLineWrap(false)
-	fmt.Println(line.String())
+	//ioutil.WriteFile("/tmp/shooter.txt", []byte(line.String()), 0644)
+	fmt.Print(line.String())
 	//SetXY(c.w-1, c.h-1)
 }
 
