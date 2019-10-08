@@ -20,8 +20,10 @@ type Canvas struct {
 	w             uint
 	h             uint
 	chars         []Char
+	oldchars      []Char
 	mut           *sync.RWMutex
 	cursorVisible bool
+	lineWrap      bool
 }
 
 func NewCanvas() *Canvas {
@@ -34,8 +36,12 @@ func NewCanvas() *Canvas {
 		c.h = 25
 	}
 	c.chars = make([]Char, c.w*c.h)
+	c.oldchars = make([]Char, 0, 0)
 	c.mut = &sync.RWMutex{}
 	c.cursorVisible = true
+	ShowCursor(true)
+	c.lineWrap = false
+	SetLineWrap(false)
 	return c
 }
 
@@ -189,44 +195,71 @@ func (c *Canvas) HideCursor() {
 func (c *Canvas) Draw() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	// Hid the cursor, temporarily, if it's visible
-	//if c.cursorVisible {
-	//	ShowCursor(false)
-	//}
 	var (
 		lastfg, lastbg AttributeColor
-		// Build a string per line
-		line strings.Builder
-		ch   *Char
+		ch             *Char
+		oldch          *Char
+		all            strings.Builder
 	)
-	//line.WriteString("\n\n")
+	firstRun := 0 == len(c.oldchars)
+	skipAll := !firstRun // true by default, except for the first run
 	for y := uint(0); y < c.h; y++ {
 		for x := uint(0); x < c.w; x++ {
-			ch = &((*c).chars[y*c.w+x])
-			// Write the color attributes, if they changed
-			if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
-				line.WriteString(ch.fg.Combine(ch.bg).String())
+			index := y*c.w + x
+			ch = &((*c).chars[index])
+			if !firstRun {
+				oldch = &((*c).oldchars[index])
+				if ch.fg.Equal(lastfg) && ch.bg.Equal(lastbg) && ch.fg.Equal(oldch.fg) && ch.bg.Equal(oldch.bg) && ch.s == oldch.s {
+					// One is not skippable, can not skip all
+					skipAll = false
+				}
 			}
-			lastfg = ch.fg
-			lastbg = ch.bg
+			// Write this character
 			if ch.s == rune(0) || len(string(ch.s)) == 0 {
-				// Write a blank
-				line.WriteRune(' ')
+				// Write a colored blank
+				all.WriteString(ch.fg.Combine(ch.bg).String())
+				all.WriteRune(' ')
 			} else {
-				// Write the rune
-				line.WriteRune(ch.s)
+				// Write the colored character
+				all.WriteString(ch.fg.Combine(ch.bg).String())
+				all.WriteRune(ch.s)
 			}
 		}
 	}
-	// Restore the cursor, if it was temporarily hidden
-	//if c.cursorVisible {
-	//	ShowCursor(true)
-	//}
-	//SetLineWrap(false)
-	//SetLineWrap(false)
-	SetXY(0, 0)
-	fmt.Print(line.String())
-	//SetXY(c.w-1, c.h-1)
+
+	// Output the combined string, also disable the color codes
+	if !skipAll {
+
+		// Hide the cursor, temporarily, if it's visible
+		if c.cursorVisible {
+			ShowCursor(false)
+		}
+		// Enable line wrap, temporarily, if it's diabled
+		if !c.lineWrap {
+			SetLineWrap(true)
+		}
+
+		all.WriteString(NoColor())
+		SetXY(0, 0)
+		fmt.Print(all.String())
+
+		// Restore the cursor, if it was temporarily hidden
+		if c.cursorVisible {
+			ShowCursor(true)
+		}
+		// Restore the line wrap, if it was temporarily enabled
+		if !c.lineWrap {
+			SetLineWrap(false)
+		}
+
+		// Save the current state to oldchars
+		c.oldchars = make([]Char, len(c.chars))
+		copy(c.oldchars, c.chars)
+	} else {
+		SetXY(0, 0)
+		fmt.Print("SKIP")
+	}
+
 }
 
 func (c *Canvas) Redraw() {
