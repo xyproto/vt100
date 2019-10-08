@@ -38,8 +38,8 @@ func NewCanvas() *Canvas {
 	c.chars = make([]Char, c.w*c.h)
 	c.oldchars = make([]Char, 0, 0)
 	c.mut = &sync.RWMutex{}
-	c.cursorVisible = true
-	ShowCursor(true)
+	c.cursorVisible = false
+	ShowCursor(false)
 	c.lineWrap = false
 	SetLineWrap(false)
 	return c
@@ -203,6 +203,7 @@ func (c *Canvas) Draw() {
 	)
 	firstRun := 0 == len(c.oldchars)
 	skipAll := !firstRun // true by default, except for the first run
+
 	for y := uint(0); y < c.h; y++ {
 		for x := uint(0); x < c.w; x++ {
 			index := y*c.w + x
@@ -216,14 +217,22 @@ func (c *Canvas) Draw() {
 			}
 			// Write this character
 			if ch.s == rune(0) || len(string(ch.s)) == 0 {
-				// Write a colored blank
-				all.WriteString(ch.fg.Combine(ch.bg).String())
+				// Only output a color code if it's different from the last character, or it's the first one
+				if (x == 0 && y == 0) || !lastfg.Equal(ch.fg) || !lastbg.Equal(ch.bg) {
+					all.WriteString(ch.fg.Combine(ch.bg).String())
+				}
+				// Write a blank
 				all.WriteRune(' ')
 			} else {
-				// Write the colored character
-				all.WriteString(ch.fg.Combine(ch.bg).String())
+				// Only output a color code if it's different from the last character, or it's the first one
+				if (x == 0 && y == 0) || !lastfg.Equal(ch.fg) || !lastbg.Equal(ch.bg) {
+					all.WriteString(ch.fg.Combine(ch.bg).String())
+				}
+				// Write the character
 				all.WriteRune(ch.s)
 			}
+			lastfg = ch.fg
+			lastbg = ch.bg
 		}
 	}
 
@@ -255,9 +264,6 @@ func (c *Canvas) Draw() {
 		// Save the current state to oldchars
 		c.oldchars = make([]Char, len(c.chars))
 		copy(c.oldchars, c.chars)
-	//} else {
-	//	SetXY(0, 0)
-	//	fmt.Print("SKIP")
 	}
 
 }
