@@ -223,7 +223,7 @@ func (c *Canvas) Draw() {
 	)
 	for y := uint(0); y < c.h; y++ {
 		// if line has not changed, skip this line
-		if !c.linesChanged[y] {
+		if changed, ok := c.linesChanged[y]; ok && !changed {
 			continue
 		}
 		for x := uint(0); x < c.w; x++ {
@@ -258,7 +258,7 @@ func (c *Canvas) Draw() {
 				}
 			}
 		}
-		//c.markAllLinesAsNotChanged()
+		c.markAllLinesAsNotChanged()
 		line.WriteString(NoColor())
 		SetXY(0, y)
 		fmt.Print(line.String())

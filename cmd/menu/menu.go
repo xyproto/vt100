@@ -171,7 +171,7 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 
 		// If a key was pressed, draw the canvas
 		if key != 0 {
-			c.Draw()
+			c.Redraw()
 		}
 
 	}
