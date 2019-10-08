@@ -45,6 +45,20 @@ func NewCanvas() *Canvas {
 	return c
 }
 
+// Copy creates a new Canvas struct that is a copy of this one.
+// The mutex is kept as a pointer to the original.
+func (c *Canvas) Copy() Canvas {
+	var c2 Canvas
+	c2.w = c.w
+	c2.h = c.h
+	copy(c2.chars, c.chars)
+	copy(c2.oldchars, c2.oldchars)
+	c2.mut = c.mut
+	c2.cursorVisible = c.cursorVisible
+	c2.lineWrap = c.lineWrap
+	return c2
+}
+
 // Change the background color for each character
 func (c *Canvas) FillBackground(bg AttributeColor) {
 	c.mut.Lock()
