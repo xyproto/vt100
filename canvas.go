@@ -207,11 +207,14 @@ func (c *Canvas) HideCursor() {
 // Draw the entire canvas
 func (c *Canvas) Draw() {
 	c.mut.Lock()
-	ShowCursor(false)
-	defer func() {
-		ShowCursor(c.cursorVisible)
-	}()
 	defer c.mut.Unlock()
+	if c.cursorVisible {
+		// Temporarily hide the cursor
+		ShowCursor(false)
+		defer func() {
+			ShowCursor(true)
+		}()
+	}
 	var (
 		lastfg, lastbg AttributeColor
 		// Build a string per line
@@ -258,7 +261,6 @@ func (c *Canvas) Draw() {
 		fmt.Print(line.String())
 		line.Reset()
 	}
-	SetXY(c.w-1, c.h-1)
 }
 
 func (c *Canvas) Redraw() {
