@@ -18,10 +18,11 @@ type Char struct {
 }
 
 type Canvas struct {
-	w     uint
-	h     uint
-	chars []Char
-	mut   *sync.RWMutex
+	w             uint
+	h             uint
+	chars         []Char
+	mut           *sync.RWMutex
+	cursorVisible bool
 }
 
 func NewCanvas() *Canvas {
@@ -35,6 +36,7 @@ func NewCanvas() *Canvas {
 	}
 	c.chars = make([]Char, c.w*c.h)
 	c.mut = &sync.RWMutex{}
+	c.cursorVisible = true
 	return c
 }
 
@@ -170,15 +172,33 @@ func (c *Canvas) H() uint {
 	return c.h
 }
 
+func (c *Canvas) ShowCursor() {
+	if !c.cursorVisible {
+		ShowCursor(true)
+	}
+	c.cursorVisible = true
+}
+
+func (c *Canvas) HideCursor() {
+	if c.cursorVisible {
+		ShowCursor(false)
+	}
+	c.cursorVisible = false
+}
+
 // Draw the entire canvas
 func (c *Canvas) Draw() {
 	c.mut.Lock()
+	ShowCursor(false)
+	defer func() {
+		ShowCursor(c.cursorVisible)
+	}()
 	defer c.mut.Unlock()
 	var (
 		lastfg, lastbg AttributeColor
 		// Build a string per line
 		line strings.Builder
-		ch *Char
+		ch   *Char
 	)
 	//line.WriteString("\n\n")
 	for y := uint(0); y < c.h; y++ {
