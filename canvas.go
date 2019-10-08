@@ -255,9 +255,9 @@ func (c *Canvas) Draw() {
 		// Save the current state to oldchars
 		c.oldchars = make([]Char, len(c.chars))
 		copy(c.oldchars, c.chars)
-	} else {
-		SetXY(0, 0)
-		fmt.Print("SKIP")
+	//} else {
+	//	SetXY(0, 0)
+	//	fmt.Print("SKIP")
 	}
 
 }
