@@ -208,13 +208,13 @@ func (c *Canvas) HideCursor() {
 func (c *Canvas) Draw() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	if c.cursorVisible {
-		// Temporarily hide the cursor
-		ShowCursor(false)
-		defer func() {
-			ShowCursor(true)
-		}()
-	}
+	//if c.cursorVisible {
+	//	// Temporarily hide the cursor
+	//	ShowCursor(false)
+	//	defer func() {
+	//		ShowCursor(true)
+	//	}()
+	//}
 	var (
 		lastfg, lastbg AttributeColor
 		// Build a string per line
