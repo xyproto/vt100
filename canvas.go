@@ -3,16 +3,16 @@ package vt100
 import (
 	"errors"
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"sync"
 )
 
 type Char struct {
-	fg AttributeColor // Foreground color
-	bg AttributeColor // Background color
-	s  rune           // The character to draw
+	fg    AttributeColor // Foreground color
+	bg    AttributeColor // Background color
+	s     rune           // The character to draw
+	drawn bool           // Has been drawn to screen yet?
 	// Not having a background color, and storing the foreground color as a string is a design choice
 }
 
@@ -22,7 +22,6 @@ type Canvas struct {
 	chars         []Char
 	mut           *sync.RWMutex
 	cursorVisible bool
-	linesChanged  map[uint]bool
 }
 
 func NewCanvas() *Canvas {
@@ -37,24 +36,7 @@ func NewCanvas() *Canvas {
 	c.chars = make([]Char, c.w*c.h)
 	c.mut = &sync.RWMutex{}
 	c.cursorVisible = true
-	c.linesChanged = make(map[uint]bool)
 	return c
-}
-
-func (c *Canvas) markLineAsChangedByIndex(i uint) {
-	c.linesChanged[uint(math.Floor(float64(i/c.w)))] = true
-}
-
-func (c *Canvas) markAllLinesAsChanged() {
-	for y := uint(0); y < c.h; y++ {
-		c.linesChanged[y] = true
-	}
-}
-
-func (c *Canvas) markAllLinesAsNotChanged() {
-	for y := uint(0); y < c.h; y++ {
-		c.linesChanged[y] = false
-	}
 }
 
 // Change the background color for each character
@@ -63,8 +45,8 @@ func (c *Canvas) FillBackground(bg AttributeColor) {
 	converted := bg.Background()
 	for i := range c.chars {
 		c.chars[i].bg = converted
+		c.chars[i].drawn = false
 	}
-	c.markAllLinesAsChanged()
 	c.mut.Unlock()
 }
 
@@ -74,7 +56,6 @@ func (c *Canvas) Fill(fg AttributeColor) {
 	for i := range c.chars {
 		c.chars[i].fg = fg
 	}
-	c.markAllLinesAsChanged()
 	c.mut.Unlock()
 }
 
@@ -160,8 +141,8 @@ func (c *Canvas) Clear() {
 	c.mut.Lock()
 	for _, ch := range c.chars {
 		ch.s = rune(0)
+		ch.drawn = false
 	}
-	c.markAllLinesAsChanged()
 	c.mut.Unlock()
 }
 
@@ -207,69 +188,50 @@ func (c *Canvas) HideCursor() {
 // Draw the entire canvas
 func (c *Canvas) Draw() {
 	c.mut.Lock()
+	ShowCursor(false)
+	defer func() {
+		ShowCursor(c.cursorVisible)
+	}()
 	defer c.mut.Unlock()
-	//if c.cursorVisible {
-	//	// Temporarily hide the cursor
-	//	ShowCursor(false)
-	//	defer func() {
-	//		ShowCursor(true)
-	//	}()
-	//}
 	var (
 		lastfg, lastbg AttributeColor
 		// Build a string per line
 		line strings.Builder
 		ch   *Char
 	)
+	//line.WriteString("\n\n")
 	for y := uint(0); y < c.h; y++ {
-		// if line has not changed, skip this line
-		if !c.linesChanged[y] {
-			continue
-		}
 		for x := uint(0); x < c.w; x++ {
 			ch = &((*c).chars[y*c.w+x])
-			if len(ch.bg) != 0 {
-				// Write the color attributes, if they changed
-				if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
-					line.WriteString(ch.fg.Combine(ch.bg).String())
-				}
-				lastfg = ch.fg
-				lastbg = ch.bg
-				if ch.s == rune(0) || len(string(ch.s)) == 0 {
-					// Write a blank
-					line.WriteRune(' ')
-				} else {
-					// Write the rune
-					line.WriteRune(ch.s)
-				}
+			// Write the color attributes, if they changed
+			if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
+				line.WriteString(ch.fg.Combine(ch.bg).String())
+			}
+			lastfg = ch.fg
+			lastbg = ch.bg
+			if ch.s == rune(0) || len(string(ch.s)) == 0 {
+				// Write a blank
+				line.WriteRune(' ')
 			} else {
-				// Write the color attributes, if they changed
-				if !ch.fg.Equal(lastfg) {
-					line.WriteString(ch.fg.String())
-				}
-				lastfg = ch.fg
-				lastbg = ch.bg
-				if ch.s == rune(0) || len(string(ch.s)) == 0 {
-					// Write a blank
-					line.WriteRune(' ')
-				} else {
-					// Write the rune
-					line.WriteRune(ch.s)
-				}
+				// Write the rune
+				line.WriteRune(ch.s)
 			}
 		}
-		//c.markAllLinesAsNotChanged()
-		line.WriteString(NoColor())
-		SetXY(0, y)
-		fmt.Print(line.String())
-		line.Reset()
 	}
+	//SetLineWrap(false)
+	SetXY(0, 0)
+	//SetLineWrap(false)
+	//ioutil.WriteFile("/tmp/shooter.txt", []byte(line.String()), 0644)
+	fmt.Print(line.String())
+	//SetXY(c.w-1, c.h-1)
 }
 
 func (c *Canvas) Redraw() {
-	c.Clear()
+	// TODO: Consider using a single for-loop instead of 1 (range) + 2 (x,y)
 	c.mut.Lock()
-	c.markAllLinesAsChanged()
+	for _, ch := range c.chars {
+		ch.drawn = false
+	}
 	c.mut.Unlock()
 	c.Draw()
 }
@@ -297,7 +259,7 @@ func (c *Canvas) Plot(x, y uint, s rune) {
 	c.mut.Lock()
 	chars := (*c).chars
 	chars[index].s = s
-	c.markLineAsChangedByIndex(index)
+	chars[index].drawn = false
 	c.mut.Unlock()
 }
 
@@ -313,7 +275,7 @@ func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, s rune) {
 	chars := (*c).chars
 	chars[index].s = s
 	chars[index].fg = fg
-	c.markLineAsChangedByIndex(index)
+	chars[index].drawn = false
 	c.mut.Unlock()
 }
 
@@ -325,26 +287,21 @@ func (c *Canvas) WriteString(x, y uint, fg, bg AttributeColor, s string) {
 	if x >= c.w || y >= c.h {
 		return
 	}
+	chars := (*c).chars
+	counter := uint(0)
 	c.mut.Lock()
-	var (
-		chars   = (*c).chars
-		counter uint
-		index   uint
-	)
 	for _, r := range s {
-		index = y*c.w + x + counter
-		chars[index].s = r
-		chars[index].fg = fg
-		chars[index].bg = bg.Background()
+		chars[y*c.w+x+counter].s = r
+		chars[y*c.w+x+counter].fg = fg
+		chars[y*c.w+x+counter].bg = bg.Background()
+		chars[y*c.w+x+counter].drawn = false
 		counter++
 	}
-	c.linesChanged[y] = true
 	c.mut.Unlock()
 }
 
 func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 	c.WriteString(x, y, fg, bg, s)
-	c.linesChanged[y] = true
 }
 
 // WriteRune will write a colored rune to the canvas
@@ -361,7 +318,7 @@ func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
 	chars[index].s = r
 	chars[index].fg = fg
 	chars[index].bg = bg.Background()
-	c.markLineAsChangedByIndex(index)
+	chars[index].drawn = false
 	c.mut.Unlock()
 }
 
@@ -414,10 +371,10 @@ func (c *Canvas) Resized() *Canvas {
 				}
 				// Copy over old characters, and mark them as not drawn
 				ch := oldc.chars[oldIndex]
+				ch.drawn = false
 				nc.chars[index] = ch
 			}
 		}
-		c.markAllLinesAsChanged()
 		// Return the new canvas
 		return nc
 	}
