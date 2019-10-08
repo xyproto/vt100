@@ -173,28 +173,26 @@ func (c *Canvas) H() uint {
 
 func (c *Canvas) ShowCursor() {
 	if !c.cursorVisible {
-		ShowCursor(true)
+		c.cursorVisible = true
 	}
-	c.cursorVisible = true
+	ShowCursor(true)
 }
 
 func (c *Canvas) HideCursor() {
 	if c.cursorVisible {
-		ShowCursor(false)
+		c.cursorVisible = false
 	}
-	c.cursorVisible = false
+	ShowCursor(false)
 }
 
 // Draw the entire canvas
 func (c *Canvas) Draw() {
 	c.mut.Lock()
-	if c.cursorVisible {
-		ShowCursor(false)
-		defer func() {
-			ShowCursor(true)
-		}()
-	}
 	defer c.mut.Unlock()
+	// Hid the cursor, temporarily, if it's visible
+	//if c.cursorVisible {
+	//	ShowCursor(false)
+	//}
 	var (
 		lastfg, lastbg AttributeColor
 		// Build a string per line
@@ -220,10 +218,13 @@ func (c *Canvas) Draw() {
 			}
 		}
 	}
+	// Restore the cursor, if it was temporarily hidden
+	//if c.cursorVisible {
+	//	ShowCursor(true)
+	//}
+	//SetLineWrap(false)
 	//SetLineWrap(false)
 	SetXY(0, 0)
-	//SetLineWrap(false)
-	//ioutil.WriteFile("/tmp/shooter.txt", []byte(line.String()), 0644)
 	fmt.Print(line.String())
 	//SetXY(c.w-1, c.h-1)
 }
