@@ -188,10 +188,12 @@ func (c *Canvas) HideCursor() {
 // Draw the entire canvas
 func (c *Canvas) Draw() {
 	c.mut.Lock()
-	ShowCursor(false)
-	defer func() {
-		ShowCursor(c.cursorVisible)
-	}()
+	if c.cursorVisible {
+		ShowCursor(false)
+		defer func() {
+			ShowCursor(true)
+		}()
+	}
 	defer c.mut.Unlock()
 	var (
 		lastfg, lastbg AttributeColor
