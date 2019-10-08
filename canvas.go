@@ -17,10 +17,11 @@ type Char struct {
 }
 
 type Canvas struct {
-	w     uint
-	h     uint
-	chars []Char
-	mut   *sync.RWMutex
+	w             uint
+	h             uint
+	chars         []Char
+	mut           *sync.RWMutex
+	cursorVisible bool
 }
 
 func NewCanvas() *Canvas {
@@ -34,6 +35,7 @@ func NewCanvas() *Canvas {
 	}
 	c.chars = make([]Char, c.w*c.h)
 	c.mut = &sync.RWMutex{}
+	c.cursorVisible = true
 	return c
 }
 
@@ -169,16 +171,39 @@ func (c *Canvas) H() uint {
 	return c.h
 }
 
+func (c *Canvas) ShowCursor() {
+	if !c.cursorVisible {
+		ShowCursor(true)
+	}
+	c.cursorVisible = true
+}
+
+func (c *Canvas) HideCursor() {
+	if c.cursorVisible {
+		ShowCursor(false)
+	}
+	c.cursorVisible = false
+}
+
 // Draw the entire canvas
 func (c *Canvas) Draw() {
 	c.mut.Lock()
+	ShowCursor(false)
+	defer func() {
+		ShowCursor(c.cursorVisible)
+	}()
 	defer c.mut.Unlock()
-	// Build a string per line
-	var line strings.Builder
+	var (
+		lastfg, lastbg AttributeColor
+		// Build a string per line
+		line strings.Builder
+		ch   *Char
+	)
+	//line.WriteString("\n\n")
 	for y := uint(0); y < c.h; y++ {
 		anythingChangedForThisLine := false
 		for x := uint(0); x < c.w; x++ {
-			ch := &((*c).chars[y*c.w+x])
+			ch = &((*c).chars[y*c.w+x])
 			if !ch.drawn {
 				anythingChangedForThisLine = true
 				break
@@ -187,47 +212,34 @@ func (c *Canvas) Draw() {
 		if !anythingChangedForThisLine {
 			continue
 		}
-		var lastfg, lastbg AttributeColor
 		for x := uint(0); x < c.w; x++ {
-			ch := &((*c).chars[y*c.w+x])
+			ch = &((*c).chars[y*c.w+x])
 			if !ch.drawn {
 				if len(ch.bg) != 0 {
+					// Write the color attributes, if they changed
+					if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
+						line.WriteString(ch.fg.Combine(ch.bg).String())
+					}
+					lastfg = ch.fg
+					lastbg = ch.bg
 					if ch.s == rune(0) || len(string(ch.s)) == 0 {
-						// Write the color attributes, if they changed
-						if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
-							line.WriteString(ch.fg.Combine(ch.bg).String())
-						}
-						lastfg = ch.fg
-						lastbg = ch.bg
 						// Write a blank
 						line.WriteRune(' ')
 					} else {
-						// Write the color attributes, if they changed
-						if !ch.fg.Equal(lastfg) || !ch.bg.Equal(lastbg) {
-							line.WriteString(ch.fg.Combine(ch.bg).String())
-						}
-						lastfg = ch.fg
-						lastbg = ch.bg
 						// Write the rune
 						line.WriteRune(ch.s)
 					}
 				} else {
+					// Write the color attributes, if they changed
+					if !ch.fg.Equal(lastfg) {
+						line.WriteString(ch.fg.String())
+					}
+					lastfg = ch.fg
+					lastbg = ch.bg
 					if ch.s == rune(0) || len(string(ch.s)) == 0 {
-						// Write the color attributes, if they changed
-						if !ch.fg.Equal(lastfg) {
-							line.WriteString(ch.fg.String())
-						}
-						lastfg = ch.fg
-						lastbg = ch.bg
 						// Write a blank
 						line.WriteRune(' ')
 					} else {
-						// Write the color attributes, if they changed
-						if !ch.fg.Equal(lastfg) {
-							line.WriteString(ch.fg.String())
-						}
-						lastfg = ch.fg
-						lastbg = ch.bg
 						// Write the rune
 						line.WriteRune(ch.s)
 					}
