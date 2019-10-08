@@ -289,15 +289,15 @@ func (c *Canvas) WriteString(x, y uint, fg, bg AttributeColor, s string) {
 	}
 	chars := (*c).chars
 	counter := uint(0)
-	c.mut.Lock()
 	for _, r := range s {
+		c.mut.Lock()
 		chars[y*c.w+x+counter].s = r
 		chars[y*c.w+x+counter].fg = fg
 		chars[y*c.w+x+counter].bg = bg.Background()
 		chars[y*c.w+x+counter].drawn = false
+		c.mut.Unlock()
 		counter++
 	}
-	c.mut.Unlock()
 }
 
 func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
