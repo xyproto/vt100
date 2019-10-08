@@ -49,10 +49,9 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 			// Create a new canvas, with the new size
 			nc := c.Resized()
 			if nc != nil {
-				c.Clear()
 				vt100.Clear()
-				c.Draw()
 				c = nc
+				c.Redraw()
 			}
 
 			// Inform all elements that the terminal was resized
@@ -71,8 +70,7 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 	running := true
 
 	vt100.Clear()
-	c.Clear()
-	c.Draw()
+	c.Redraw()
 
 	for running {
 
@@ -171,11 +169,10 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 			}
 		}
 
-		// If a key was pressed, clear the screen, just in case it shifted
-		//if key != 0 {
-		//	vt100.Clear()
-		//	c.Draw()
-		//}
+		// If a key was pressed, draw the canvas
+		if key != 0 {
+			c.Draw()
+		}
 
 	}
 

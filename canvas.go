@@ -223,6 +223,9 @@ func (c *Canvas) Draw() {
 	)
 	for y := uint(0); y < c.h; y++ {
 		// if line has not changed, skip this line
+		if !c.linesChanged[y] {
+			continue
+		}
 		for x := uint(0); x < c.w; x++ {
 			ch = &((*c).chars[y*c.w+x])
 			if len(ch.bg) != 0 {
@@ -255,7 +258,7 @@ func (c *Canvas) Draw() {
 				}
 			}
 		}
-		c.markAllLinesAsNotChanged()
+		//c.markAllLinesAsNotChanged()
 		line.WriteString(NoColor())
 		SetXY(0, y)
 		fmt.Print(line.String())
@@ -264,6 +267,7 @@ func (c *Canvas) Draw() {
 }
 
 func (c *Canvas) Redraw() {
+	c.Clear()
 	c.mut.Lock()
 	c.markAllLinesAsChanged()
 	c.mut.Unlock()
@@ -321,25 +325,26 @@ func (c *Canvas) WriteString(x, y uint, fg, bg AttributeColor, s string) {
 	if x >= c.w || y >= c.h {
 		return
 	}
+	c.mut.Lock()
 	var (
 		chars   = (*c).chars
 		counter uint
 		index   uint
 	)
 	for _, r := range s {
-		c.mut.Lock()
 		index = y*c.w + x + counter
 		chars[index].s = r
 		chars[index].fg = fg
 		chars[index].bg = bg.Background()
-		c.markLineAsChangedByIndex(index)
-		c.mut.Unlock()
 		counter++
 	}
+	c.linesChanged[y] = true
+	c.mut.Unlock()
 }
 
 func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 	c.WriteString(x, y, fg, bg, s)
+	c.linesChanged[y] = true
 }
 
 // WriteRune will write a colored rune to the canvas
