@@ -104,7 +104,7 @@ func (b *Bullet) HitSomething(c *vt100.Canvas) bool {
 		// Hit something. Check the next-next position too
 		r2, err := c.At(uint(b.x+b.vx), uint(b.y+b.vy))
 		if err != nil {
-			return false
+			return true
 		}
 		if r2 != rune(0) && r2 != bulletEraseChar && r2 != bobEraseChar {
 			b.Stop()
