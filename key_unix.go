@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	defaultTimeout = 5 * time.Millisecond
+	defaultTimeout = 2 * time.Millisecond
 	lastKey        int
 )
 
