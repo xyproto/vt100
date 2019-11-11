@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/xyproto/vt100"
 )
 
@@ -13,10 +14,10 @@ func main() {
 	}
 	for {
 		key := tty.KeyBlock()
-		if key != 0 {
+		if key != "" {
 			fmt.Println(key)
 		}
-		if key == 27 {
+		if key == "27" {
 			if escCount == 0 {
 				fmt.Println("Press ESC again to exit")
 			} else {
