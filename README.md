@@ -10,6 +10,8 @@
 * Uses the spec directly, but memoizes the commands sent to the terminal, for speed.
 * Could be used for building a better `dialog` or `whiptail` utility.
 
+Note that [go-terminput](https://github.com/tj/go-terminput) is probably a better choice for handling keyboard input, and that they current keyboard-related functions will be modified to use go-terminput in the future (but the signatures will stay the same).
+
 ### Images
 
 ![shooter example](img/shooter.gif)
