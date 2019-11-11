@@ -5,6 +5,7 @@ package vt100
 import (
 	"strconv"
 	"time"
+	"unicode"
 
 	"github.com/pkg/term"
 )
@@ -267,11 +268,11 @@ func (tty *TTY) KeyBlock() string {
 			return "←"
 		}
 	} else if numRead == 1 {
-		if bytes[0] <= 32 {
-			return strconv.Itoa(int(bytes[0]))
-		} else {
-			return string(rune(bytes[0]))
+		r := rune(bytes[0])
+		if unicode.IsPrint(r) {
+			return string(r)
 		}
+		return "c:" + strconv.Itoa(int(r))
 	} else {
 		// Two or more bytes, a unicode character (or mashing several keys)
 		return string([]rune(string(bytes))[0])

@@ -17,7 +17,7 @@ func main() {
 		if key != "" {
 			fmt.Println(key)
 		}
-		if key == "27" {
+		if key == "c:27" {
 			if escCount == 0 {
 				fmt.Println("Press ESC again to exit")
 			} else {
