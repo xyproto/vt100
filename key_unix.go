@@ -235,10 +235,10 @@ func WaitForKey() {
 	}
 }
 
-// KeyBlock will block and then return a string
+// String will block and then return a string
 // Arrow keys are returned as ←, →, ↑ or ↓
 // returns an empty string if the pressed key could not be interpreted
-func (tty *TTY) KeyBlock() string {
+func (tty *TTY) String() string {
 	bytes := make([]byte, 3)
 	tty.RawMode()
 	//tty.NoBlock()
