@@ -99,11 +99,11 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 		// Handle events
 		key := tty.Key()
 		switch key {
-		case 253, 107, 16: // Up, k or ctrl-p
+		case 253, 252, 107, 16: // Up, left, k or ctrl-p
 			resizeMut.Lock()
 			menu.Up(c)
 			resizeMut.Unlock()
-		case 255, 106, 14: // Down, j or ctrl-n
+		case 255, 254, 106, 14: // Down, right, j or ctrl-n
 			resizeMut.Lock()
 			menu.Down(c)
 			resizeMut.Unlock()
@@ -118,7 +118,7 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 		case 27, 113: // ESC or q
 			running = false
 			break
-		case 32, 13, 254: // Space, Return or Right // 108 is l
+		case 32, 13: // Space or Return
 			resizeMut.Lock()
 			menu.Select()
 			resizeMut.Unlock()
@@ -141,6 +141,7 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 			}
 			var r rune = rune(letterNumber + 97)
 
+			// TODO: Find the next item starting with this letter, with wraparound
 			// Select the item that starts with this letter, if possible. Try the first, then the second, etc, up to 5
 			keymap := make(map[rune]int)
 			for index, choice := range choices {
