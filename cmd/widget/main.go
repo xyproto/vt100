@@ -4,11 +4,12 @@ import (
 	"github.com/xyproto/vt100"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
+	"time"
 )
 
-func draw() {
-	c := vt100.NewCanvas()
+func draw(c *vt100.Canvas) {
 	c.FillBackground(vt100.BackgroundBlue)
 
 	box := NewBox()
@@ -53,20 +54,42 @@ func draw() {
 
 func main() {
 	var (
+		c = vt100.NewCanvas()
+
+		// Channel for terminal signals
 		sigChan = make(chan os.Signal, 1)
+
+		// Mutex used when the terminal is resized
+		resizeMut = &sync.RWMutex{}
 	)
 
 	signal.Notify(sigChan, syscall.SIGWINCH)
 	go func() {
 		for range sigChan {
-			draw()
+			resizeMut.Lock()
+			vt100.Close()
+
+			// Sleeping here is a bit dirty, but it works
+			time.Sleep(100 * time.Millisecond)
+			//vt100.Reset()
+
+			vt100.Init()
+			c = vt100.NewCanvas()
+			draw(c)
+
+			resizeMut.Unlock()
 		}
 	}()
+
+	resizeMut.Lock()
 
 	vt100.Init()
 	defer vt100.Close()
 
-	draw()
+	c.Clear()
+	draw(c)
+
+	resizeMut.Unlock()
 
 	vt100.WaitForKey()
 }
