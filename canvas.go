@@ -91,10 +91,10 @@ func (c *Canvas) FillBackground(bg AttributeColor) {
 // Change the foreground color for each character
 func (c *Canvas) Fill(fg AttributeColor) {
 	c.mut.Lock()
+	defer c.mut.Unlock()
 	for i := range c.chars {
 		c.chars[i].fg = fg
 	}
-	c.mut.Unlock()
 }
 
 // Bytes returns only the characters, as a long string with a newline after each row
@@ -223,16 +223,31 @@ func (c *Canvas) HideCursor() {
 	ShowCursor(false)
 }
 
+func (c *Canvas) Lock() {
+	c.mut.Lock()
+}
+
+func (c *Canvas) Unlock() {
+	c.mut.Unlock()
+}
+
+func (c *Canvas) RLock() {
+	c.mut.RLock()
+}
+
+func (c *Canvas) RUnlock() {
+	c.mut.RUnlock()
+}
+
 // Draw the entire canvas
 func (c *Canvas) Draw() {
-	c.mut.Lock()
-	defer c.mut.Unlock()
 	var (
 		lastfg, lastbg AttributeColor
 		ch             *Char
 		oldch          *Char
 		all            strings.Builder
 	)
+	c.mut.RLock()
 	firstRun := 0 == len(c.oldchars)
 	skipAll := !firstRun // true by default, except for the first run
 
@@ -265,6 +280,9 @@ func (c *Canvas) Draw() {
 		lastfg = ch.fg
 		lastbg = ch.bg
 	}
+	c.mut.RUnlock()
+	c.mut.Lock()
+	defer c.mut.Unlock()
 
 	// Output the combined string, also disable the color codes
 	if !skipAll {
