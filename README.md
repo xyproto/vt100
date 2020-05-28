@@ -74,10 +74,6 @@ The `o` editor that uses `vt100` can be used for editing Go or C++ code, or for 
 
     go get -u github.com/xyproto/o
 
-### Quick demonstration of a menu that uses `vt100`
-
-![menu demo](img/vt100_menu.gif)
-
 ### General info
 
 * Version: 1.8.5
