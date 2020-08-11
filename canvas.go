@@ -308,14 +308,15 @@ func (c *Canvas) Draw() {
 			ShowCursor(false)
 		}
 
-		// Enable line wrap, temporarily, if it's disabled. Why?
-		//if !c.lineWrap {
-		//SetLineWrap(true)
-		//}
+		// Enable line wrap, temporarily, if it's disabled
+		if !c.lineWrap {
+			SetLineWrap(true)
+		}
 
 		// Draw each and every line, or push one large string to screen?
 		if c.runewise {
 
+			Clear()
 			c.PlotAll()
 
 			// 			line := ""
@@ -347,9 +348,9 @@ func (c *Canvas) Draw() {
 		}
 
 		// Restore the line wrap, if it was temporarily enabled
-		//if !c.lineWrap {
-		//SetLineWrap(false)
-		//}
+		if !c.lineWrap {
+			SetLineWrap(false)
+		}
 
 		// Save the current state to oldchars
 		c.oldchars = make([]ColorRune, len(c.chars))
