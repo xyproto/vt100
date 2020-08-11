@@ -27,7 +27,7 @@ type Canvas struct {
 	mut           *sync.RWMutex
 	cursorVisible bool
 	lineWrap      bool
-	linewise      bool // Should each line be drawn separately, or should a large string be pushed to screen?
+	runewise      bool // Should each rune be drawn by moving to (x,y) first?
 }
 
 func NewCanvas() *Canvas {
@@ -101,7 +101,7 @@ func (c *Canvas) Fill(fg AttributeColor) {
 	c.mut.Unlock()
 }
 
-// Bytes returns only the characters, as a long string with a newline after each row
+// String returns only the characters, as a long string with a newline after each row
 func (c *Canvas) String() string {
 	var sb strings.Builder
 	for y := uint(0); y < c.h; y++ {
@@ -118,6 +118,25 @@ func (c *Canvas) String() string {
 		sb.WriteRune('\n')
 	}
 	return sb.String()
+}
+
+// PlotAll tries to plot each individual rune.
+// It's very inefficient and meant to be used as a robust fallback.
+func (c *Canvas) PlotAll() {
+	w := c.w
+	h := c.h
+	for y := uint(0); y < h; y++ {
+		for x := int(w - 1); x >= 0; x-- {
+			cr := &((*c).chars[y*w+uint(x)])
+			r := cr.r
+			if cr.r == rune(0) {
+				r = ' '
+				//continue
+			}
+			SetXY(uint(x), y)
+			fmt.Print(cr.fg.Combine(cr.bg).String() + string(r))
+		}
+	}
 }
 
 // Return the size of the current canvas
@@ -221,8 +240,8 @@ func (c *Canvas) HideCursor() {
 	ShowCursor(false)
 }
 
-func (c *Canvas) SetLinewise(b bool) {
-	c.linewise = b
+func (c *Canvas) SetRunewise(b bool) {
+	c.runewise = b
 }
 
 // Draw the entire canvas
@@ -282,28 +301,44 @@ func (c *Canvas) Draw() {
 
 		// After filling the string builder with characters,
 		// end with a final "color off" code.
-		sb.WriteString(NoColor())
+		//sb.WriteString(NoColor())
 
 		// Hide the cursor, temporarily, if it's visible
 		if c.cursorVisible {
 			ShowCursor(false)
 		}
 
-		// Enable line wrap, temporarily, if it's diabled
-		if !c.lineWrap {
-			SetLineWrap(true)
-		}
+		// Enable line wrap, temporarily, if it's disabled. Why?
+		//if !c.lineWrap {
+		//SetLineWrap(true)
+		//}
 
 		// Draw each and every line, or push one large string to screen?
-		if c.linewise {
-			lines := strings.Split(sb.String(), "\n")
-			for i, line := range lines {
-				SetXY(0, uint(i))
-				fmt.Print(line)
-			}
+		if c.runewise {
+
+			c.PlotAll()
+
+			// 			line := ""
+			// 			runes := []rune(sb.String())
+			// 			for y := uint(0); y < c.h; y++ {
+			// 				w := c.w
+			// 				thisPos := w * y
+			// 				nextPos := w*(y+1)
+			// 				if nextPos >= uint(len(runes)) {
+			// 					line = string(runes[thisPos:])
+			// 					SetXY(0, uint(y))
+			// 					fmt.Println(line)
+			// 					break
+			// 				}
+			// 				line = string(runes[thisPos : nextPos])
+			// 				SetXY(uint(y), 0)
+			// 				fmt.Println(line)
+			// 			}
+
 		} else {
 			SetXY(0, 0)
 			os.Stdout.Write([]byte(sb.String()))
+			//os.Stdout.Sync()
 		}
 
 		// Restore the cursor, if it was temporarily hidden
@@ -312,9 +347,9 @@ func (c *Canvas) Draw() {
 		}
 
 		// Restore the line wrap, if it was temporarily enabled
-		if !c.lineWrap {
-			SetLineWrap(false)
-		}
+		//if !c.lineWrap {
+		//SetLineWrap(false)
+		//}
 
 		// Save the current state to oldchars
 		c.oldchars = make([]ColorRune, len(c.chars))
