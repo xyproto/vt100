@@ -229,15 +229,6 @@ func NewAttributeColor(attributes ...string) AttributeColor {
 }
 
 // For each element in a slice, apply the function f
-func mapS(sl []string, f func(string) string) []string {
-	result := make([]string, len(sl))
-	for i, s := range sl {
-		result[i] = f(s)
-	}
-	return result
-}
-
-// For each element in a slice, apply the function f
 func mapBS(bl []byte, f func(byte) string) []string {
 	result := make([]string, len(bl))
 	for i, b := range bl {
