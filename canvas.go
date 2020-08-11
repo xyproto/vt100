@@ -286,12 +286,11 @@ func (c *Canvas) Draw() {
 		}
 
 		// Enable line wrap, temporarily, if it's diabled
-		//if !c.lineWrap {
-		//	SetLineWrap(true)
-		//}
+		if !c.lineWrap {
+			SetLineWrap(true)
+		}
 
 		SetXY(0, 0)
-
 		os.Stdout.Write([]byte(sb.String()))
 
 		// Restore the cursor, if it was temporarily hidden
@@ -300,9 +299,9 @@ func (c *Canvas) Draw() {
 		}
 
 		// Restore the line wrap, if it was temporarily enabled
-		//if !c.lineWrap {
-			//SetLineWrap(false)
-		//}
+		if !c.lineWrap {
+			SetLineWrap(false)
+		}
 
 		// Save the current state to oldchars
 		c.oldchars = make([]ColorRune, len(c.chars))
