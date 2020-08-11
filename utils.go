@@ -7,6 +7,24 @@ import (
 	"path/filepath"
 )
 
+// For each element in a slice, apply the function f
+func mapSB(sl []string, f func(string) byte) []byte {
+	result := make([]byte, len(sl))
+	for i, s := range sl {
+		result[i] = f(s)
+	}
+	return result
+}
+
+// For each element in a slice, apply the function f
+func mapBS(bl []byte, f func(byte) string) []string {
+	result := make([]string, len(bl))
+	for i, b := range bl {
+		result[i] = f(b)
+	}
+	return result
+}
+
 // logf, for quick "printf-style" debugging
 func logf(head string, tail ...interface{}) {
 	tmpdir := os.Getenv("TMPDIR")
