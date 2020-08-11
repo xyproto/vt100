@@ -29,8 +29,6 @@ func TestInts(t *testing.T) {
 		if ai[i] != bi[i] {
 			fmt.Println("NO")
 			t.Fail()
-		} else {
-			//fmt.Println("YES")
 		}
 	}
 }
