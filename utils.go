@@ -25,6 +25,14 @@ func mapBS(bl []byte, f func(byte) string) []string {
 	return result
 }
 
+// umin finds the smallest uint
+func umin(a, b uint) uint {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 // logf, for quick "printf-style" debugging
 func logf(head string, tail ...interface{}) {
 	tmpdir := os.Getenv("TMPDIR")
