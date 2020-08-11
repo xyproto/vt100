@@ -33,6 +33,8 @@ func main() {
 	c.WriteRuneB(1, 0, fg, bg, 'C')
 	c.WriteRuneB(1, 1, fg, bg, 'D')
 
+	c.SetLinewise(true)
+
 	// Draw the contents of the canvas
 	c.Draw()
 
