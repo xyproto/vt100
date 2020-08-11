@@ -134,7 +134,7 @@ func (c *Canvas) PlotAll() {
 				//continue
 			}
 			SetXY(uint(x), y)
-			fmt.Print(cr.fg.Combine(cr.bg).String() + string(r))
+			fmt.Print(cr.fg.Combine(cr.bg).String() + string(r) + NoColor())
 		}
 	}
 }
