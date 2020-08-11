@@ -8,19 +8,22 @@ import (
 	"sync"
 )
 
-type Char struct {
+type ColorRune struct {
 	fg    AttributeColor // Foreground color
 	bg    AttributeColor // Background color
-	s     rune           // The character to draw
+	r     rune           // The character to draw
 	drawn bool           // Has been drawn to screen yet?
 	// Not having a background color, and storing the foreground color as a string is a design choice
 }
 
+// for API stability
+type Char ColorRune
+
 type Canvas struct {
 	w             uint
 	h             uint
-	chars         []Char
-	oldchars      []Char
+	chars         []ColorRune
+	oldchars      []ColorRune
 	mut           *sync.RWMutex
 	cursorVisible bool
 	lineWrap      bool
@@ -35,8 +38,8 @@ func NewCanvas() *Canvas {
 		c.w = 80
 		c.h = 25
 	}
-	c.chars = make([]Char, c.w*c.h)
-	c.oldchars = make([]Char, 0, 0)
+	c.chars = make([]ColorRune, c.w*c.h)
+	c.oldchars = make([]ColorRune, 0)
 	c.mut = &sync.RWMutex{}
 	c.cursorVisible = false
 	ShowCursor(false)
@@ -51,22 +54,22 @@ func (c *Canvas) Copy() Canvas {
 	var c2 Canvas
 	c2.w = c.w
 	c2.h = c.h
-	chars2 := make([]Char, len(c.chars), len(c.chars))
+	chars2 := make([]ColorRune, len(c.chars))
 	for i, ch := range c.chars {
-		var ch2 Char
+		var ch2 ColorRune
 		ch2.fg = ch.fg
 		ch2.bg = ch.bg
-		ch2.s = ch.s
+		ch2.r = ch.r
 		ch2.drawn = ch.drawn
 		chars2[i] = ch
 	}
 	c2.chars = chars2
-	oldchars2 := make([]Char, len(c.chars), len(c.chars))
+	oldchars2 := make([]ColorRune, len(c.chars))
 	for i, ch := range c.oldchars {
-		var ch2 Char
+		var ch2 ColorRune
 		ch2.fg = ch.fg
 		ch2.bg = ch.bg
-		ch2.s = ch.s
+		ch2.r = ch.r
 		ch2.drawn = ch.drawn
 		oldchars2[i] = ch
 	}
@@ -104,10 +107,10 @@ func (c *Canvas) String() string {
 		c.mut.RLock()
 		for x := uint(0); x < c.w; x++ {
 			ch := &((*c).chars[y*c.w+x])
-			if ch.s == rune(0) {
+			if ch.r == rune(0) {
 				sb.WriteRune(' ')
 			} else {
-				sb.WriteRune(ch.s)
+				sb.WriteRune(ch.r)
 			}
 		}
 		c.mut.RUnlock()
@@ -178,7 +181,7 @@ func Clear() {
 func (c *Canvas) Clear() {
 	c.mut.Lock()
 	for _, ch := range c.chars {
-		ch.s = rune(0)
+		ch.r = rune(0)
 		ch.drawn = false
 	}
 	c.mut.Unlock()
@@ -227,40 +230,48 @@ func (c *Canvas) HideCursor() {
 func (c *Canvas) Draw() {
 	c.mut.Lock()
 	defer c.mut.Unlock()
+
 	var (
 		lastfg, lastbg AttributeColor
-		ch             Char
-		oldch          Char
-		all            strings.Builder
+		ch             ColorRune
+		oldch          ColorRune
+		sb             strings.Builder
 	)
-	firstRun := 0 == len(c.oldchars)
+
+	firstRun := len(c.oldchars) == 0
 	skipAll := !firstRun // true by default, except for the first run
 
 	size := uint(c.w * c.h)
+
+	//if size == 0 {
+	//	panic("CANAVAS IS SIZE 0")
+	//}
+
 	for index := uint(0); index < size; index++ {
 		ch = (*c).chars[index]
+		logf("%c\n", ch.r)
 		if !firstRun {
 			oldch = (*c).oldchars[index]
-			if ch.fg.Equal(lastfg) && ch.bg.Equal(lastbg) && ch.fg.Equal(oldch.fg) && ch.bg.Equal(oldch.bg) && ch.s == oldch.s {
+			if ch.fg.Equal(lastfg) && ch.bg.Equal(lastbg) && ch.fg.Equal(oldch.fg) && ch.bg.Equal(oldch.bg) && ch.r == oldch.r {
 				// One is not skippable, can not skip all
 				skipAll = false
 			}
 		}
 		// Write this character
-		if ch.s == rune(0) || len(string(ch.s)) == 0 {
+		if ch.r == rune(0) || len(string(ch.r)) == 0 {
 			// Only output a color code if it's different from the last character, or it's the first one
 			if (index == 0) || !lastfg.Equal(ch.fg) || !lastbg.Equal(ch.bg) {
-				all.WriteString(ch.fg.Combine(ch.bg).String())
+				sb.WriteString(ch.fg.Combine(ch.bg).String())
 			}
 			// Write a blank
-			all.WriteRune(' ')
+			sb.WriteRune(' ')
 		} else {
 			// Only output a color code if it's different from the last character, or it's the first one
 			if (index == 0) || !lastfg.Equal(ch.fg) || !lastbg.Equal(ch.bg) {
-				all.WriteString(ch.fg.Combine(ch.bg).String())
+				sb.WriteString(ch.fg.Combine(ch.bg).String())
 			}
 			// Write the character
-			all.WriteRune(ch.s)
+			sb.WriteRune(ch.r)
 		}
 		lastfg = ch.fg
 		lastbg = ch.bg
@@ -273,26 +284,32 @@ func (c *Canvas) Draw() {
 		if c.cursorVisible {
 			ShowCursor(false)
 		}
+
 		// Enable line wrap, temporarily, if it's diabled
 		if !c.lineWrap {
 			SetLineWrap(true)
 		}
 
-		all.WriteString(NoColor())
+		// After filling the string builder with characters,
+		// end with a final "color off" code.
+		sb.WriteString(NoColor())
+
+		// Output a screenfull of text
 		SetXY(0, 0)
-		fmt.Print(all.String())
+		fmt.Print(sb.String())
 
 		// Restore the cursor, if it was temporarily hidden
 		if c.cursorVisible {
 			ShowCursor(true)
 		}
+
 		// Restore the line wrap, if it was temporarily enabled
 		if !c.lineWrap {
 			SetLineWrap(false)
 		}
 
 		// Save the current state to oldchars
-		c.oldchars = make([]Char, len(c.chars))
+		c.oldchars = make([]ColorRune, len(c.chars))
 		copy(c.oldchars, c.chars)
 	}
 }
@@ -316,35 +333,35 @@ func (c *Canvas) At(x, y uint) (rune, error) {
 	if index < uint(0) || index >= uint(len(chars)) {
 		return rune(0), errors.New("out of bounds")
 	}
-	return chars[index].s, nil
+	return chars[index].r, nil
 }
 
-func (c *Canvas) Plot(x, y uint, s rune) {
-	if x < 0 || y < 0 {
-		return
-	}
+func (c *Canvas) Plot(x, y uint, r rune) {
+	//if x < 0 || y < 0 {
+	//	return
+	//}
 	if x >= c.w || y >= c.h {
 		return
 	}
 	index := y*c.w + x
 	c.mut.Lock()
 	chars := (*c).chars
-	chars[index].s = s
+	chars[index].r = r
 	chars[index].drawn = false
 	c.mut.Unlock()
 }
 
-func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, s rune) {
-	if x < 0 || y < 0 {
-		return
-	}
+func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, r rune) {
+	//if x < 0 || y < 0 {
+	//	return
+	//}
 	if x >= c.w || y >= c.h {
 		return
 	}
 	index := y*c.w + x
 	c.mut.Lock()
 	chars := (*c).chars
-	chars[index].s = s
+	chars[index].r = r
 	chars[index].fg = fg
 	chars[index].drawn = false
 	c.mut.Unlock()
@@ -352,9 +369,9 @@ func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, s rune) {
 
 // WriteString will write a string to the canvas.
 func (c *Canvas) WriteString(x, y uint, fg, bg AttributeColor, s string) {
-	if x < 0 || y < 0 {
-		return
-	}
+	//if x < 0 || y < 0 {
+	//return
+	//}
 	if x >= c.w || y >= c.h {
 		return
 	}
@@ -369,7 +386,7 @@ func (c *Canvas) WriteString(x, y uint, fg, bg AttributeColor, s string) {
 		if i >= lchars {
 			break
 		}
-		chars[i].s = r
+		chars[i].r = r
 		chars[i].fg = fg
 		chars[i].bg = bgb
 		chars[i].drawn = false
@@ -384,9 +401,9 @@ func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 
 // WriteRune will write a colored rune to the canvas
 func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
-	if x < 0 || y < 0 {
-		return
-	}
+	//if x < 0 || y < 0 {
+	//	return
+	//}
 	if x >= c.w || y >= c.h {
 		return
 	}
@@ -394,7 +411,7 @@ func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
 
 	c.mut.Lock()
 	chars := (*c).chars
-	chars[index].s = r
+	chars[index].r = r
 	chars[index].fg = fg
 	chars[index].bg = bg.Background()
 	chars[index].drawn = false
@@ -405,9 +422,9 @@ func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
 // This is the same as WriteRuneB, but bg.Background() has already been called on
 // the background attribute.
 func (c *Canvas) WriteRuneB(x, y uint, fg, bgb AttributeColor, r rune) {
-	if x < 0 || y < 0 {
-		return
-	}
+	//if x < 0 || y < 0 {
+	//	return
+	//}
 	if x >= c.w || y >= c.h {
 		return
 	}
@@ -415,7 +432,7 @@ func (c *Canvas) WriteRuneB(x, y uint, fg, bgb AttributeColor, r rune) {
 
 	c.mut.Lock()
 	chars := (*c).chars
-	chars[index].s = r
+	chars[index].r = r
 	chars[index].fg = fg
 	chars[index].bg = bgb
 	chars[index].drawn = false
@@ -432,7 +449,7 @@ func (c *Canvas) Resize() {
 		// Resize to the new size
 		c.w = w
 		c.h = h
-		c.chars = make([]Char, w*h)
+		c.chars = make([]ColorRune, w*h)
 		c.mut = &sync.RWMutex{}
 	}
 	c.mut.Unlock()
@@ -453,7 +470,7 @@ func (c *Canvas) Resized() *Canvas {
 		nc := &Canvas{}
 		nc.w = w
 		nc.h = h
-		nc.chars = make([]Char, w*h)
+		nc.chars = make([]ColorRune, w*h)
 		nc.mut = &sync.RWMutex{}
 
 		nc.mut.Lock()
