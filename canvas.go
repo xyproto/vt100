@@ -14,7 +14,6 @@ type ColorRune struct {
 	bg    AttributeColor // Background color
 	r     rune           // The character to draw
 	drawn bool           // Has been drawn to screen yet?
-	// Not having a background color, and storing the foreground color as a string is a design choice
 }
 
 // for API stability
@@ -28,6 +27,7 @@ type Canvas struct {
 	mut           *sync.RWMutex
 	cursorVisible bool
 	lineWrap      bool
+	linewise      bool // Should each line be drawn separately, or should a large string be pushed to screen?
 }
 
 func NewCanvas() *Canvas {
@@ -221,6 +221,10 @@ func (c *Canvas) HideCursor() {
 	ShowCursor(false)
 }
 
+func (c *Canvas) SetLinewise(b bool) {
+	c.linewise = b
+}
+
 // Draw the entire canvas
 func (c *Canvas) Draw() {
 	c.mut.Lock()
@@ -290,8 +294,17 @@ func (c *Canvas) Draw() {
 			SetLineWrap(true)
 		}
 
-		SetXY(0, 0)
-		os.Stdout.Write([]byte(sb.String()))
+		// Draw each and every line, or push one large string to screen?
+		if c.linewise {
+			lines := strings.Split(sb.String(), "\n")
+			for i, line := range lines {
+				SetXY(0, uint(i))
+				fmt.Print(line)
+			}
+		} else {
+			SetXY(0, 0)
+			os.Stdout.Write([]byte(sb.String()))
+		}
 
 		// Restore the cursor, if it was temporarily hidden
 		if c.cursorVisible {
