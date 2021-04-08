@@ -55,7 +55,7 @@ func main() {
 	defer vt100.Close()
 
 	// The loop time that is aimed for
-	loopDuration := time.Millisecond * 20
+	loopDuration := time.Millisecond * 10
 	start := time.Now()
 
 	running := true
@@ -116,7 +116,6 @@ func main() {
 			resizeMut.Unlock()
 		case 27, 113: // ESC or q
 			running = false
-			break
 		case 32: // Space
 			resizeMut.Lock()
 			bob.ToggleColor()
