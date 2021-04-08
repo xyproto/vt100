@@ -118,7 +118,7 @@ func main() {
 
 	vt100.Clear()
 	vt100.ShowCursor(false)
-	vt100.SetLineWrap(false)
+	vt100.SetLineWrap(true)
 
 	running := true
 	for running {
@@ -136,7 +136,7 @@ func main() {
 		draw.Unlock()
 
 		// Wait a bit
-		time.Sleep(time.Millisecond * 15)
+		time.Sleep(time.Millisecond * 10)
 
 		// Change state
 		oldx := bob.x
