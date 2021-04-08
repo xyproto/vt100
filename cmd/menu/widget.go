@@ -18,9 +18,10 @@ type MenuWidget struct {
 	choices    []string
 	selected   int
 	titleColor string
+	arrowColor string
 }
 
-func NewMenuWidget(title, titleColor string, choices []string, fg, hi, active string, canvasWidth, canvasHeight uint) *MenuWidget {
+func NewMenuWidget(title, titleColor string, choices []string, fg, hi, active, arrowColor string, canvasWidth, canvasHeight uint) *MenuWidget {
 	maxlen := uint(0)
 	for _, choice := range choices {
 		if uint(len(choice)) > uint(maxlen) {
@@ -49,6 +50,7 @@ func NewMenuWidget(title, titleColor string, choices []string, fg, hi, active st
 		choices:    choices,
 		selected:   -1,
 		titleColor: titleColor,
+		arrowColor: arrowColor,
 	}
 }
 
@@ -74,8 +76,8 @@ func (m *MenuWidget) Draw(c *vt100.Canvas) {
 			if x < uint(len([]rune(itemString))) {
 				r = []rune(itemString)[x]
 			}
-			if x < 2 {
-				c.PlotColor(uint(m.marginLeft+int(x)), uint(m.marginTop+int(y)+titleHeight), vt100.LightBlue, r)
+			if x < 2 && y == m.y {
+				c.PlotColor(uint(m.marginLeft+int(x)), uint(m.marginTop+int(y)+titleHeight), vt100.LightColorMap[m.arrowColor], r)
 			} else if y == m.y {
 				c.PlotColor(uint(m.marginLeft+int(x)), uint(m.marginTop+int(y)+titleHeight), vt100.LightColorMap[m.hi], r)
 			} else {

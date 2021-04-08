@@ -27,7 +27,7 @@ func getLetter(s string, pos int) (rune, error) {
 
 // Menu starts a loop where keypresses are handled. When a choice is made, a number is returned.
 // -1 is "no choice", 0 and up is which choice were selected.
-func Menu(title, titleColor string, choices []string, selectionDelay time.Duration, fg, hi, active string) int {
+func Menu(title, titleColor string, choices []string, selectionDelay time.Duration, fg, hi, active, arrowColor string) int {
 	c := vt100.NewCanvas()
 	tty, err := vt100.NewTTY()
 	if err != nil {
@@ -38,7 +38,7 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 	resizeMut := &sync.RWMutex{}
 
 	var (
-		menu    = NewMenuWidget(title, titleColor, choices, fg, hi, active, c.W(), c.H())
+		menu    = NewMenuWidget(title, titleColor, choices, fg, hi, active, arrowColor, c.W(), c.H())
 		sigChan = make(chan os.Signal, 1)
 	)
 
@@ -117,13 +117,11 @@ func Menu(title, titleColor string, choices []string, selectionDelay time.Durati
 			resizeMut.Unlock()
 		case 27, 113: // ESC or q
 			running = false
-			break
 		case 32, 13: // Space or Return
 			resizeMut.Lock()
 			menu.Select()
 			resizeMut.Unlock()
 			running = false
-			break
 		case 48, 49, 50, 51, 52, 53, 54, 55, 56, 57: // 0 .. 9
 			number := uint(key - 48)
 			resizeMut.Lock()

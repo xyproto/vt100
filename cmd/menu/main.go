@@ -9,7 +9,7 @@ import (
 func main() {
 	var (
 		choices  = []string{"[0] Set up keyboard", "[1] Configure timezone", "[2] Set up disk layout", "[3] Install packages", "[4] Reboot"}
-		selected = Menu("Welcome", "Red", choices, 200*time.Millisecond, "White", "Green", "Yellow")
+		selected = Menu("Installation Example", "yellow", choices, 20*time.Millisecond, "darkgray", "blue", "cyan", "red")
 	)
 	if selected < 0 {
 		fmt.Println("No selection.")
