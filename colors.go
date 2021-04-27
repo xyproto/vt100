@@ -2,7 +2,6 @@ package vt100
 
 import (
 	"bytes"
-	"encoding/binary"
 	"fmt"
 	"image/color"
 	"os"
@@ -259,39 +258,29 @@ func b2s(b byte) string {
 }
 
 var (
-	scache = make(map[uint64]string)
+	scache = make(map[string]string)
 	smut   = &sync.RWMutex{}
 )
 
-// Returns an uint64 hash of the byte slice.
-// Also returns an int that is 0 if the byte slice is too short
-// or <0 if the byte slice is too long.
-func (ac AttributeColor) Hash() (uint64, int) {
-	return binary.Uvarint(ac)
-}
-
 // Return the VT100 terminal codes for setting this combination of attributes and color attributes
 func (ac AttributeColor) String() string {
-	id, errInt := ac.Hash()
-	if errInt > 0 { // has ID number that is an uint64
-		smut.RLock()
-		if s, has := scache[id]; has {
-			smut.RUnlock()
-			return s
-		}
+	id := string(ac)
+
+	smut.RLock()
+	if s, has := scache[id]; has {
 		smut.RUnlock()
+		return s
 	}
+	smut.RUnlock()
 
 	attributeString := strings.Join(mapBS(ac, b2s), ";")
 	// Replace '{attr1};...;{attrn}' with the generated attribute string and return
 	s := get(specVT100, "Set Attribute Mode", map[string]string{"{attr1};...;{attrn}": attributeString})
 
 	// Store the value in the cache, if the id is short enough
-	if errInt > 0 { // has ID number that is an uint64
-		smut.Lock()
-		scache[id] = s
-		smut.Unlock()
-	}
+	smut.Lock()
+	scache[id] = s
+	smut.Unlock()
 
 	return s
 }
