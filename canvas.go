@@ -478,13 +478,19 @@ func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
 // WriteRuneB will write a colored rune to the canvas
 // This is the same as WriteRuneB, but bg.Background() has already been called on
 // the background attribute.
+// The x and y must be within range (x < c.w and y < c.h)
 func (c *Canvas) WriteRuneB(x, y uint, fg, bgb AttributeColor, r rune) {
+
+	// Disabled for performance reasons
 	//if x < 0 || y < 0 {
 	//	return
 	//}
-	if x >= c.w || y >= c.h {
-		return
-	}
+
+	// Disabled for performance reasons
+	//if x >= c.w || y >= c.h {
+	//return
+	//}
+
 	index := y*c.w + x
 
 	c.mut.Lock()
