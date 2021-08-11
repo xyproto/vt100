@@ -68,6 +68,7 @@ var (
 
 	// Default colors (usually gray)
 	Default           = NewAttributeColor("39")
+	DefaultBackground = NewAttributeColor("49")
 	BackgroundDefault = NewAttributeColor("49")
 
 	// Lookup tables
