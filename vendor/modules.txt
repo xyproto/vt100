@@ -1,6 +1,8 @@
 # github.com/pkg/term v1.1.0
 github.com/pkg/term
 github.com/pkg/term/termios
-# golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
+# github.com/xyproto/benchmarked v0.0.1
+github.com/xyproto/benchmarked
+# golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
