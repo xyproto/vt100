@@ -26,6 +26,7 @@ func main() {
 		bob     = NewBob()
 		sigChan = make(chan os.Signal, 1)
 		bullets = make([]*Bullet, 0)
+		enemies = NewEnemies(7)
 	)
 
 	signal.Notify(sigChan, syscall.SIGWINCH)
@@ -45,6 +46,9 @@ func main() {
 			// TODO: Use a slice of interfaces that can contain all elements
 			for _, bullet := range bullets {
 				bullet.Resize()
+			}
+			for _, enemy := range enemies {
+				enemy.Resize()
 			}
 			bob.Resize()
 			resizeMut.Unlock()
@@ -74,6 +78,9 @@ func main() {
 		resizeMut.RLock()
 		for _, bullet := range bullets {
 			bullet.Draw(c)
+		}
+		for _, enemy := range enemies {
+			enemy.Draw(c)
 		}
 		bob.Draw(c)
 		resizeMut.RUnlock()
@@ -128,7 +135,7 @@ func main() {
 			}
 			if r == rune(0) || r == bobEraseChar || r == bulletEraseChar {
 				// Fire a new bullet
-				bullets = append(bullets, NewBullet(bob.x+1, bob.y, 1, 0))
+				bullets = append(bullets, NewBullet(bob.x, bob.y, bob.x-bob.oldx, bob.y-bob.oldy))
 			}
 		case 97: // a
 			// Write the canvas characters to file
@@ -150,6 +157,9 @@ func main() {
 		resizeMut.Lock()
 		for _, bullet := range bullets {
 			bullet.Next(c)
+		}
+		for _, enemy := range enemies {
+			enemy.Next(c, bob)
 		}
 		if moved {
 			bob.ToggleState()
