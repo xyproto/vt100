@@ -20,7 +20,17 @@ func NewBob() *Bob {
 		oldx:  10,
 		oldy:  10,
 		state: 'o',
-		color: vt100.Red,
+		color: vt100.LightYellow,
+	}
+}
+
+func (b *Bob) ToggleColor() {
+	c1 := vt100.LightRed
+	c2 := vt100.LightYellow
+	if b.color.Equal(c1) {
+		b.color = c2
+	} else {
+		b.color = c1
 	}
 }
 

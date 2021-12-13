@@ -13,7 +13,6 @@ type Bullet struct {
 	state      rune                 // looks
 	color      vt100.AttributeColor // foreground color
 	stopped    bool                 // is the movement stopped?
-	removed    bool                 // to be removed
 }
 
 func NewBullet(x, y, vx, vy int) *Bullet {
@@ -27,7 +26,6 @@ func NewBullet(x, y, vx, vy int) *Bullet {
 		state:   '×',
 		color:   vt100.LightBlue,
 		stopped: false,
-		removed: false,
 	}
 }
 
@@ -80,16 +78,12 @@ func (b *Bullet) Next(c *vt100.Canvas) bool {
 	}
 	if b.x >= int(c.W()) {
 		b.x -= b.vx
-		return false
-	} else if b.x < 0 {
-		b.x -= b.vx
+		b.ToggleColor()
 		return false
 	}
 	if b.y >= int(c.H()) {
 		b.y -= b.vy
-		return false
-	} else if b.y < 0 {
-		b.y -= b.vy
+		b.ToggleColor()
 		return false
 	}
 	return true
@@ -106,13 +100,13 @@ func (b *Bullet) HitSomething(c *vt100.Canvas) bool {
 	if err != nil {
 		return false
 	}
-	if r != rune(0) && r != bulletEraseChar && r != bobEraseChar && r != enemyEraseChar {
+	if r != rune(0) && r != bulletEraseChar && r != bobEraseChar {
 		// Hit something. Check the next-next position too
 		r2, err := c.At(uint(b.x+b.vx), uint(b.y+b.vy))
 		if err != nil {
 			return true
 		}
-		if r2 != rune(0) && r2 != bulletEraseChar && r2 != bobEraseChar && r2 != enemyEraseChar {
+		if r2 != rune(0) && r2 != bulletEraseChar && r2 != bobEraseChar {
 			b.Stop()
 		}
 		return true

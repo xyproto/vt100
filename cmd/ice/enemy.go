@@ -30,8 +30,8 @@ func NewEnemy() *Enemy {
 		y:     10,
 		oldx:  10,
 		oldy:  10,
-		state: '°',
-		color: vt100.LightMagenta,
+		state: 'x',
+		color: vt100.LightCyan,
 	}
 }
 
@@ -97,51 +97,23 @@ func (e *Enemy) Next(c *vt100.Canvas, bob *Bob) bool {
 
 	// Now try to move the enemy intelligently, given the position of bob
 
-	d := distance(bob.x, e.x, bob.y, e.y)
-	if d > 10 {
-		if e.x < bob.x {
-			e.x++
-		} else if e.x > bob.x {
-			e.x--
-		}
-		if e.y < bob.y {
-			e.y++
-		} else if e.y > bob.y {
-			e.y--
-		}
+	distance := math.Sqrt(float64(bob.x)*float64(bob.x) + float64(bob.y)*float64(bob.y) - float64(e.x)*float64(e.x) + float64(e.y)*float64(e.y))
+
+	if distance > 10 {
+		e.x += rand.Intn(3) - 1 // -1 0 or 1
+		e.y += rand.Intn(3) - 1 // -1 0 or 1
 	} else {
-		for {
-			dx := e.x - e.oldx
-			dy := e.y - e.oldy
-			e.x += int(math.Round(float64(dx*3+rand.Intn(5)-2) / float64(4))) // -2, -1, 0, 1, 2
-			e.y += int(math.Round(float64(dy*3+rand.Intn(5)-2) / float64(4)))
-			if e.x != e.oldx {
-				break
-			}
-			if e.y != e.oldy {
-				break
-			}
-		}
+		e.x += rand.Intn(5) - 2 // -2 -1 0 1 or 2
+		e.y += rand.Intn(5) - 2 // -2 -1 0 1 or 2
 	}
 
 	if e.HitSomething(c) {
+		// enemy did hit something, move back one step
 		e.x = e.oldx
 		e.y = e.oldy
 		return false
 	}
-
-	if e.x >= int(c.W()) {
-		e.x = e.oldx
-	} else if e.x <= 0 {
-		e.x = e.oldx
-	}
-	if e.y >= int(c.H()) {
-		e.y = e.oldy
-	} else if e.y <= 0 {
-		e.y = e.oldy
-	}
-
-	return e.x != e.oldx || e.y != e.oldy
+	return true
 }
 
 func (e *Enemy) HitSomething(c *vt100.Canvas) bool {
@@ -149,6 +121,9 @@ func (e *Enemy) HitSomething(c *vt100.Canvas) bool {
 	if err != nil {
 		return false
 	}
-	// Hit something?
-	return r != rune(0) && r != bulletEraseChar && r != bobEraseChar && r != enemyEraseChar
+	if r != rune(0) && r != bulletEraseChar && r != bobEraseChar {
+		// Hit something
+		return true
+	}
+	return false
 }
