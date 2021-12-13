@@ -431,26 +431,26 @@ func (c *Canvas) WriteString(x, y uint, fg, bg AttributeColor, s string) {
 		return
 	}
 
+	bgb := bg.Background()
+
 	c.mut.RLock()
 	chars := (*c).chars
 	index := y*c.w + x
 	canvasLen := uint(len(chars))
 	c.mut.RUnlock()
 
-	bgb := bg.Background()
-
-	c.mut.Lock()
 	for _, r := range s { // loop over runes, not bytes
+		c.mut.Lock()
 		chars[index].r = r
 		chars[index].fg = fg
 		chars[index].bg = bgb
 		chars[index].drawn = false
+		c.mut.Unlock()
 		index++
 		if index >= canvasLen {
 			break
 		}
 	}
-	c.mut.Unlock()
 }
 
 func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
