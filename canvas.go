@@ -401,9 +401,6 @@ func (c *Canvas) At(x, y uint) (rune, error) {
 }
 
 func (c *Canvas) Plot(x, y uint, r rune) {
-	//if x < 0 || y < 0 {
-	//	return
-	//}
 	if x >= c.w || y >= c.h {
 		return
 	}
@@ -416,9 +413,6 @@ func (c *Canvas) Plot(x, y uint, r rune) {
 }
 
 func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, r rune) {
-	//if x < 0 || y < 0 {
-	//	return
-	//}
 	if x >= c.w || y >= c.h {
 		return
 	}
@@ -433,32 +427,26 @@ func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, r rune) {
 
 // WriteString will write a string to the canvas.
 func (c *Canvas) WriteString(x, y uint, fg, bg AttributeColor, s string) {
-	//if x < 0 || y < 0 {
-	//return
-	//}
 	if x >= c.w || y >= c.h {
 		return
 	}
+	bgb := bg.Background()
+
 	c.mut.RLock()
 	chars := (*c).chars
-	counter := uint(0)
-	startpos := y*c.w + x
-	lchars := uint(len(chars))
-	c.mut.RUnlock()
-	bgb := bg.Background()
-	for _, r := range s {
-		i := startpos + counter
-		if i >= lchars {
+	index := y*c.w + x
+	canvasLen := uint(len(chars))
+	for _, r := range s { // loop over runes, not bytes
+		chars[index].r = r
+		chars[index].fg = fg
+		chars[index].bg = bgb
+		chars[index].drawn = false
+		index++
+		if index >= canvasLen {
 			break
 		}
-		c.mut.Lock()
-		chars[i].r = r
-		chars[i].fg = fg
-		chars[i].bg = bgb
-		chars[i].drawn = false
-		c.mut.Unlock()
-		counter++
 	}
+	c.mut.Unlock()
 }
 
 func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
@@ -467,9 +455,6 @@ func (c *Canvas) Write(x, y uint, fg, bg AttributeColor, s string) {
 
 // WriteRune will write a colored rune to the canvas
 func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
-	//if x < 0 || y < 0 {
-	//	return
-	//}
 	if x >= c.w || y >= c.h {
 		return
 	}
@@ -489,17 +474,6 @@ func (c *Canvas) WriteRune(x, y uint, fg, bg AttributeColor, r rune) {
 // the background attribute.
 // The x and y must be within range (x < c.w and y < c.h)
 func (c *Canvas) WriteRuneB(x, y uint, fg, bgb AttributeColor, r rune) {
-
-	// Disabled for performance reasons
-	//if x < 0 || y < 0 {
-	//	return
-	//}
-
-	// Disabled for performance reasons
-	//if x >= c.w || y >= c.h {
-	//return
-	//}
-
 	index := y*c.w + x
 
 	c.mut.Lock()
