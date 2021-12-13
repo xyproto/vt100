@@ -272,13 +272,10 @@ func (c *Canvas) Draw() {
 	// NOTE: If too many runes are written to the screen, the contents will scroll up,
 	// and it will appear like the first line(s) are lost!
 
-	c.mut.RLock()
+	c.mut.Lock()
 	firstRun := len(c.oldchars) == 0
 	skipAll := !firstRun // true by default, except for the first run
 	size := uint(c.w * c.h)
-	c.mut.RUnlock()
-
-	c.mut.RLock()
 	for index := uint(0); index < (size - 1); index++ {
 		cr = (*c).chars[index]
 		if !firstRun {
@@ -291,7 +288,9 @@ func (c *Canvas) Draw() {
 
 		// Only output a color code if it's different from the last character, or it's the first one
 		if (index == 0) || !lastfg.Equal(cr.fg) || !lastbg.Equal(cr.bg) {
+			c.mut.Unlock()
 			sb.WriteString(cr.fg.Combine(cr.bg).String())
+			c.mut.Lock()
 		}
 
 		// Write the character
@@ -304,7 +303,7 @@ func (c *Canvas) Draw() {
 		lastfg = cr.fg
 		lastbg = cr.bg
 	}
-	c.mut.RUnlock()
+	c.mut.Unlock()
 
 	// The screenfull so far is correct (sb.String())
 
@@ -335,29 +334,11 @@ func (c *Canvas) Draw() {
 			Clear()
 			c.PlotAll()
 
-			// 			line := ""
-			// 			runes := []rune(sb.String())
-			// 			for y := uint(0); y < c.h; y++ {
-			// 				w := c.w
-			// 				thisPos := w * y
-			// 				nextPos := w*(y+1)
-			// 				if nextPos >= uint(len(runes)) {
-			// 					line = string(runes[thisPos:])
-			// 					SetXY(0, uint(y))
-			// 					fmt.Println(line)
-			// 					break
-			// 				}
-			// 				line = string(runes[thisPos : nextPos])
-			// 				SetXY(uint(y), 0)
-			// 				fmt.Println(line)
-			// 			}
-
 		} else {
 			c.mut.Lock()
 			SetXY(0, 0)
 			os.Stdout.Write([]byte(sb.String()))
 			c.mut.Unlock()
-			//os.Stdout.Sync()
 		}
 
 		// Restore the cursor, if it was temporarily hidden
@@ -406,10 +387,10 @@ func (c *Canvas) Plot(x, y uint, r rune) {
 	}
 	index := y*c.w + x
 	c.mut.Lock()
+	defer c.mut.Unlock()
 	chars := (*c).chars
 	chars[index].r = r
 	chars[index].drawn = false
-	c.mut.Unlock()
 }
 
 func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, r rune) {
@@ -418,11 +399,11 @@ func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, r rune) {
 	}
 	index := y*c.w + x
 	c.mut.Lock()
-	chars := (*c.chars
+	defer c.mut.Unlock()
+	chars := (*c).chars
 	chars[index].r = r
 	chars[index].fg = fg
 	chars[index].drawn = false
-	c.mut.Unlock()
 }
 
 // WriteString will write a string to the canvas.
@@ -439,13 +420,13 @@ func (c *Canvas) WriteString(x, y uint, fg, bg AttributeColor, s string) {
 	canvasLen := uint(len(chars))
 	c.mut.RUnlock()
 
+	c.mut.Lock()
+	defer c.mut.Unlock()
 	for _, r := range s { // loop over runes, not bytes
-		c.mut.Lock()
 		chars[index].r = r
 		chars[index].fg = fg
 		chars[index].bg = bgb
 		chars[index].drawn = false
-		c.mut.Unlock()
 		index++
 		if index >= canvasLen {
 			break
