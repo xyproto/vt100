@@ -418,7 +418,7 @@ func (c *Canvas) PlotColor(x, y uint, fg AttributeColor, r rune) {
 	}
 	index := y*c.w + x
 	c.mut.Lock()
-	chars := (*c).chars
+	chars := (*c.chars
 	chars[index].r = r
 	chars[index].fg = fg
 	chars[index].drawn = false
@@ -430,12 +430,16 @@ func (c *Canvas) WriteString(x, y uint, fg, bg AttributeColor, s string) {
 	if x >= c.w || y >= c.h {
 		return
 	}
-	bgb := bg.Background()
 
 	c.mut.RLock()
 	chars := (*c).chars
 	index := y*c.w + x
 	canvasLen := uint(len(chars))
+	c.mut.RUnlock()
+
+	bgb := bg.Background()
+
+	c.mut.Lock()
 	for _, r := range s { // loop over runes, not bytes
 		chars[index].r = r
 		chars[index].fg = fg
