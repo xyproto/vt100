@@ -64,14 +64,18 @@ func (t *Theme) DrawList(c *vt100.Canvas, r *Box, items []string, selected int) 
 // it will look more "grayed out".
 func (t *Theme) DrawButton(c *vt100.Canvas, r *Box, text string, active bool) {
 	color := t.ButtonText
+	bg := t.ButtonBackground
+	brackets := t.ButtonBrackets
 	if active {
-		color = t.ButtonFocus
+		color = t.ButtonFocusText
+		bg = t.ButtonFocusBackground
+		brackets = t.ButtonFocusBrackets
 	}
 	x := r.frame.X
 	y := r.frame.Y
-	c.Write(uint(x), uint(y), color, t.Background, "<  ")
-	c.Write(uint(x+3), uint(y), color, t.Background, text)
-	c.Write(uint(x+3+len(text)), uint(y), color, t.Background, "  >")
+	c.Write(uint(x), uint(y), brackets, bg, "<  ")
+	c.Write(uint(x+3), uint(y), color, bg, text)
+	c.Write(uint(x+3+len(text)), uint(y), brackets, bg, "  >")
 }
 
 // Outputs a multiline string at the given coordinates.

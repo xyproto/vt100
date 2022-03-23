@@ -9,32 +9,37 @@ import (
 type Theme struct {
 	Text, Background, Title,
 	BoxLight, BoxDark, BoxBackground,
-	ButtonFocus, ButtonText,
+	ButtonText, ButtonBackground, ButtonFocusText, ButtonFocusBackground,
+	ButtonBrackets, ButtonFocusBrackets,
 	ListFocus, ListText, ListBackground vt100.AttributeColor
 	TL, TR, BL, BR, VL, VR, HT, HB rune
 }
 
 func NewTheme() *Theme {
 	return &Theme{
-		Text:           vt100.Black,
-		Background:     vt100.BackgroundBlue,
-		Title:          vt100.LightCyan,
-		BoxLight:       vt100.White,
-		BoxDark:        vt100.Black,
-		BoxBackground:  vt100.BackgroundGray,
-		ButtonFocus:    vt100.LightYellow,
-		ButtonText:     vt100.White,
-		ListFocus:      vt100.Red,
-		ListText:       vt100.Black,
-		ListBackground: vt100.BackgroundGray,
-		TL:             '╭', // top left
-		TR:             '╮', // top right
-		BL:             '╰', // bottom left
-		BR:             '╯', // bottom right
-		VL:             '│', // vertical line, left side
-		VR:             '│', // vertical line, right side
-		HT:             '─', // horizontal line
-		HB:             '─', // horizontal bottom line
+		Text:                  vt100.Black,
+		Background:            vt100.BackgroundBlue,
+		Title:                 vt100.LightCyan,
+		BoxLight:              vt100.White,
+		BoxDark:               vt100.Black,
+		BoxBackground:         vt100.BackgroundGray,
+		ButtonText:            vt100.LightGreen,
+		ButtonBackground:      vt100.BackgroundGray,
+		ButtonFocusText:       vt100.LightRed,
+		ButtonFocusBackground: vt100.BackgroundRed,
+		ButtonBrackets:        vt100.LightGreen,
+		ButtonFocusBrackets:   vt100.LightYellow,
+		ListFocus:             vt100.Red,
+		ListText:              vt100.Black,
+		ListBackground:        vt100.BackgroundGray,
+		TL:                    '╭', // top left
+		TR:                    '╮', // top right
+		BL:                    '╰', // bottom left
+		BR:                    '╯', // bottom right
+		VL:                    '│', // vertical line, left side
+		VR:                    '│', // vertical line, right side
+		HT:                    '─', // horizontal line
+		HB:                    '─', // horizontal bottom line
 	}
 }
 
