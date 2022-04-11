@@ -4,5 +4,5 @@ go 1.10
 
 require (
 	github.com/pkg/term v1.2.0-beta.2.0.20210419004637-f749b98bd0ba
-	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
+	golang.org/x/sys v0.0.0-20220408201424-a24fb2fb8a0f // indirect
 )
