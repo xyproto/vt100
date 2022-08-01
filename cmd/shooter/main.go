@@ -25,6 +25,8 @@ func main() {
 	}
 	defer tty.Close()
 
+	vt100.EchoOff()
+
 	// Mutex used when the terminal is resized
 	resizeMut := &sync.RWMutex{}
 
