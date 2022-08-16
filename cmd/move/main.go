@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/xyproto/vt100"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/xyproto/vt100"
 )
 
 type Bob struct {
@@ -80,6 +81,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	vt100.EchoOff()
 
 	var bob Bob
 	bob.state = 'o'

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/xyproto/vt100"
 	"io/ioutil"
 	"log"
 	"os"
@@ -9,6 +8,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/xyproto/vt100"
 )
 
 func main() {
@@ -57,6 +58,8 @@ func main() {
 
 	vt100.Init()
 	defer vt100.Close()
+
+	vt100.EchoOff()
 
 	// The loop time that is aimed for
 	loopDuration := time.Millisecond * 10
