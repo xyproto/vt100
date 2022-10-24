@@ -8,7 +8,7 @@
 * Can get key-presses, including arrow keys (252, 253, 254, 255).
 * Has a Canvas struct, for drawing only the updated lines to the terminal.
 * Uses the spec directly, but memoizes the commands sent to the terminal, for speed.
-* Could be used for building a better `dialog` or `whiptail` utility.
+* Could be used for making an alternative to the `dialog` or `whiptail` utilities.
 
 ### Editor
 
@@ -74,7 +74,7 @@ The [`o` editor](https://github.com/xyproto/o) that uses `vt100` can be used for
 
 Quick installation:
 
-    go install github.com/xyproto/o@latest
+    go install github.com/xyproto/o/v2@latest
 
 ### General info
 
