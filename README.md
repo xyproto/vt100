@@ -7,7 +7,7 @@
 * Can detect the terminal size.
 * Can get key-presses, including arrow keys (252, 253, 254, 255).
 * Has a Canvas struct, for drawing only the updated lines to the terminal.
-* Uses the reference documentation directly, but memoizes the commands sent to the terminal, for performance.
+* Uses the a reference document directly, but memoizes the commands sent to the terminal, for performance.
 * Could be used for making an alternative to the `dialog` or `whiptail` utilities.
 
 ### Editor
