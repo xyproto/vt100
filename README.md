@@ -32,13 +32,13 @@ Screen recording of the [`menu`](cmd/menu) example, which uses VT100 terminal co
 
 A physical VT100 terminal. Photo by [Jason Scott](https://www.flickr.com/photos/54568729@N00/9636183501), [CC BY 2.0](https://creativecommons.org/licenses/by/2.0)
 
-### The `vt100` Go Module
+### Requirements
 
-Requires Go 1.10 or later.
+* Go 1.10 or later.
 
 ### Features and limitations
 
-* Can detect letters, arrow keys and space. F12 and similar keys are not supported (they are supported by vt220 but not vt100).
+* Can detect letters, arrow keys and space. F12 and similar keys are not supported (they are supported by VT220 but not VT100).
 * Resizing the terminal when using the Canvas struct may cause artifacts, for a brief moment.
 * Holding down a key may trigger key repetition which may speed up the main loop.
 
