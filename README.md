@@ -56,7 +56,7 @@ Erase the current line:
 vt100.Do("Erase Line")
 ```
 
-Move the cursor 3 steps up (it's a bit verbose, but it's generated directly from spec, memoized for speed and is easy to wrap in a custom function):
+Move the cursor 3 steps up (it's a bit verbose, but it's generated directly from the reference document, is memoized for speed and is easy to wrap in a custom function):
 
 ```go
 vt100.Set("Cursor Up", map[string]string{"{COUNT}": "3"})
