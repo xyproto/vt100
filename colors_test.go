@@ -6,9 +6,7 @@ import (
 )
 
 func TestBackground(t *testing.T) {
-	if BackgroundBlue.String() == Blue.Background().String() {
-		//fmt.Println("BLUE IS BLUE")
-	} else {
+	if BackgroundBlue.String() != Blue.Background().String() {
 		fmt.Println("BLUE BG IS NOT BLUE BG")
 		fmt.Println(BackgroundBlue.String() + "FIRST" + Stop())
 		fmt.Println(Blue.Background().String() + "SECOND" + Stop())
