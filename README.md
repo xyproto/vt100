@@ -12,7 +12,7 @@
 
 ### Editor
 
-For an editor that uses this module, take a look at [o](https://github.com/xyproto/o).
+For an editor that uses this module, take a look at [orbiton](https://github.com/xyproto/orbiton).
 
 ### Images
 
