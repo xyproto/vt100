@@ -4,6 +4,6 @@ go 1.10
 
 require (
 	github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d
-	github.com/pkg/term v1.1.0
+	github.com/pkg/term v1.2.0-beta.2
 	golang.org/x/sys v0.10.0 // indirect
 )
