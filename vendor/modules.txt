@@ -1,5 +1,7 @@
+# github.com/nathan-fiscaletti/consolesize-go v0.0.0-20220204101620-317176b6684d
+github.com/nathan-fiscaletti/consolesize-go
 # github.com/pkg/term v1.1.0
 github.com/pkg/term
 github.com/pkg/term/termios
-# golang.org/x/sys v0.7.0
+# golang.org/x/sys v0.10.0
 golang.org/x/sys/unix
