@@ -491,16 +491,33 @@ func (c *Canvas) WriteRuneBNoLock(x, y uint, fg, bgb AttributeColor, r rune) {
 // WriteBackground will write a background color to the canvas
 // The x and y must be within range (x < c.w and y < c.h)
 func (c *Canvas) WriteBackground(x, y uint, bg AttributeColor) {
+	index := y*c.w + x
 	c.mut.Lock()
 	defer c.mut.Unlock()
-	(*c).chars[y*c.w+x].bg = bg
+	(*c).chars[index].bg = bg
+	(*c).chars[index].drawn = false
+}
+
+// WriteBackgroundAddRuneIfEmpty will write a background color to the canvas
+// The x and y must be within range (x < c.w and y < c.h)
+func (c *Canvas) WriteBackgroundAddRuneIfEmpty(x, y uint, bg AttributeColor, r rune) {
+	index := y*c.w + x
+	c.mut.Lock()
+	defer c.mut.Unlock()
+	(*c).chars[index].bg = bg
+	if (*c).chars[index].r == 0 {
+		(*c).chars[index].r = r
+	}
+	(*c).chars[index].drawn = false
 }
 
 // WriteBackgroundNoLock will write a background color to the canvas
 // The x and y must be within range (x < c.w and y < c.h)
 // The canvas mutex is not locked
 func (c *Canvas) WriteBackgroundNoLock(x, y uint, bg AttributeColor) {
-	(*c).chars[y*c.w+x].bg = bg
+	index := y*c.w + x
+	(*c).chars[index].bg = bg
+	(*c).chars[index].drawn = false
 }
 
 func (c *Canvas) Lock() {
