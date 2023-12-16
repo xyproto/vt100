@@ -7,7 +7,11 @@ import (
 
 func TestToImage(t *testing.T) {
 	// Character dimensions in pixels
-	charWidth, charHeight := 8, 14
+	charWidth, charHeight := 8, 8
+
+	// Initialize vt100 terminal settings
+	vt100.Init()
+	defer vt100.Close()
 
 	// Create a new canvas
 	canvas := NewCanvas()
@@ -35,7 +39,7 @@ func TestToImage(t *testing.T) {
 	// Check if the pixel at the specified character position has the expected color
 	// Adjusting pixel position to account for character dimensions
 	pixelX, pixelY := x*charWidth, y*charHeight
-	expectedColor := ansiCodeToColor([]byte{31}) // Red
+	expectedColor := ansiCodeToColor([]byte{31}, true) // Red
 	actualColor := img.At(pixelX, pixelY)
 	if !colorsAreEqual(expectedColor, actualColor) {
 		t.Errorf("Pixel color at (%d, %d) is incorrect. Got %v, want %v", pixelX, pixelY, actualColor, expectedColor)
