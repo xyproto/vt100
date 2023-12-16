@@ -9,7 +9,7 @@ import (
 )
 
 func (c *Canvas) ToImage() (image.Image, error) {
-	const charWidth, charHeight = 8, 14
+	const charWidth, charHeight = 8, 8
 	width, height := int(c.w)*charWidth, int(c.h)*charHeight
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
 	filled := false
