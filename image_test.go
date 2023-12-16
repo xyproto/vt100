@@ -10,8 +10,8 @@ func TestToImage(t *testing.T) {
 	charWidth, charHeight := 8, 8
 
 	// Initialize vt100 terminal settings
-	vt100.Init()
-	defer vt100.Close()
+	Init()
+	defer Close()
 
 	// Create a new canvas
 	canvas := NewCanvas()
