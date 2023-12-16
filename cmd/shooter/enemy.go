@@ -10,10 +10,10 @@ import (
 const enemyEraseChar = ' ' // for erasing when moving
 
 type Enemy struct {
+	color      vt100.AttributeColor // foreground color
 	x, y       int                  // current position
 	oldx, oldy int                  // previous position
 	state      rune                 // looks
-	color      vt100.AttributeColor // foreground color
 }
 
 func NewEnemies(n int) []*Enemy {

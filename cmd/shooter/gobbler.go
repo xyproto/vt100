@@ -9,13 +9,13 @@ import (
 const gobblerEraseChar = ' ' // for erasing when moving
 
 type Gobbler struct {
+	hunting         *Bullet              // current bullet to hunt
+	color           vt100.AttributeColor // foreground color
 	x, y            int                  // current position
 	oldx, oldy      int                  // previous position
-	state           rune                 // looks
-	color           vt100.AttributeColor // foreground color
-	hunting         *Bullet              // current bullet to hunt
 	huntingDistance float64              // how far to closest bullet
 	counter         uint
+	state           rune // looks
 	dead            bool
 }
 

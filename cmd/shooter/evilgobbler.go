@@ -9,13 +9,13 @@ import (
 const evilGobblerEraseChar = ' ' // for erasing when moving
 
 type EvilGobbler struct {
+	hunting         *Gobbler             // current gobbler to hunt
+	color           vt100.AttributeColor // foreground color
 	x, y            int                  // current position
 	oldx, oldy      int                  // previous position
-	state           rune                 // looks
-	color           vt100.AttributeColor // foreground color
-	hunting         *Gobbler             // current gobbler to hunt
 	huntingDistance float64              // how far to closest gobbler
 	counter         uint
+	state           rune // looks
 }
 
 func NewEvilGobbler() *EvilGobbler {

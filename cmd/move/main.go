@@ -11,8 +11,8 @@ import (
 )
 
 type Bob struct {
-	x, y  int
 	color string
+	x, y  int
 	state rune
 }
 
