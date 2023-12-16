@@ -12,4 +12,5 @@
 *.tmp
 *CMakeFiles*
 .vscode
+output.png
 output.txt
