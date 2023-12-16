@@ -7,4 +7,4 @@ require (
 	github.com/pkg/term v1.2.0-beta.2.0.20210419004637-f749b98bd0ba
 )
 
-require golang.org/x/sys v0.10.0 // indirect
+require golang.org/x/sys v0.15.0 // indirect
