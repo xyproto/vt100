@@ -1,16 +1,5 @@
-!*.*
-!*/
-!img/*
-*
 *.bak
-*.dblite
-*.o
-*.pro.user
-*.so
-*.svg
 *.swp
 *.tmp
-*CMakeFiles*
-.vscode
-output.png
+include.txt
 output.txt
