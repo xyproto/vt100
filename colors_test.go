@@ -57,12 +57,6 @@ func BenchmarkBackground(b *testing.B) {
 	}
 }
 
-func BenchmarkString(b *testing.B) {
-	for n := 0; n < b.N; n++ {
-		ac.String()
-	}
-}
-
 func BenchmarkStartStop(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		ac.StartStop("test")
