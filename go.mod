@@ -8,4 +8,4 @@ require (
 	github.com/xyproto/burnfont v1.2.3
 )
 
-require golang.org/x/sys v0.20.0 // indirect
+require golang.org/x/sys v0.24.0 // indirect
