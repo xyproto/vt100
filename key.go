@@ -17,24 +17,22 @@ var (
 	lastKey        int
 )
 
-// Lookup tables for faster key recognition
-
 // Key codes for 3-byte sequences (arrows, Home, End)
 var keyCodeLookup = map[[3]byte]int{
-	{27, 91, 65}:  38, // Up Arrow
-	{27, 91, 66}:  40, // Down Arrow
-	{27, 91, 67}:  39, // Right Arrow
-	{27, 91, 68}:  37, // Left Arrow
-	{27, 91, 'H'}: 36, // Home
-	{27, 91, 'F'}: 35, // End
+	{27, 91, 65}:  253, // Up Arrow
+	{27, 91, 66}:  255, // Down Arrow
+	{27, 91, 67}:  254, // Right Arrow
+	{27, 91, 68}:  252, // Left Arrow
+	{27, 91, 'H'}: 1,   // Home (Ctrl-A)
+	{27, 91, 'F'}: 5,   // End (Ctrl-E)
 }
 
 // Key codes for 4-byte sequences (Page Up, Page Down, Home, End)
 var pageNavLookup = map[[4]byte]int{
-	{27, 91, 49, 126}: 36, // Home (ESC [1~)
-	{27, 91, 52, 126}: 35, // End (ESC [4~)
-	{27, 91, 53, 126}: 33, // Page Up
-	{27, 91, 54, 126}: 34, // Page Down
+	{27, 91, 49, 126}: 1,   // Home (ESC [1~)
+	{27, 91, 52, 126}: 5,   // End (ESC [4~)
+	{27, 91, 53, 126}: 251, // Page Up (custom code)
+	{27, 91, 54, 126}: 250, // Page Down (custom code)
 }
 
 // Key codes for 6-byte sequences (Ctrl-Insert)
@@ -110,40 +108,39 @@ func asciiAndKeyCode(tty *TTY) (ascii, keyCode int, err error) {
 		return
 	}
 
-	switch numRead {
-	case 1:
+	// Handle multi-byte sequences
+	switch {
+	case numRead == 1:
 		ascii = int(bytes[0])
-	case 3:
-		// Check the lookup table for 3-byte sequences
-		if code, found := keyCodeLookup[[3]byte{bytes[0], bytes[1], bytes[2]}]; found {
+	case numRead == 3:
+		seq := [3]byte{bytes[0], bytes[1], bytes[2]}
+		if code, found := keyCodeLookup[seq]; found {
 			keyCode = code
-			return
-		} else {
-			// If not found, set ascii to the first byte
-			ascii = int(bytes[0])
 			return
 		}
-	case 4:
-		// Check the lookup table for 4-byte sequences
-		if code, found := pageNavLookup[[4]byte{bytes[0], bytes[1], bytes[2], bytes[3]}]; found {
+		// Not found, check if it's a printable character
+		r, _ := utf8.DecodeRune(bytes[:numRead])
+		if unicode.IsPrint(r) {
+			ascii = int(r)
+		}
+	case numRead == 4:
+		seq := [4]byte{bytes[0], bytes[1], bytes[2], bytes[3]}
+		if code, found := pageNavLookup[seq]; found {
 			keyCode = code
-			return
-		} else {
-			ascii = int(bytes[0])
 			return
 		}
-	case 6:
-		// Check the lookup table for 6-byte sequences (Ctrl-Insert)
-		if code, found := ctrlInsertLookup[[6]byte{bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]}]; found {
+	case numRead == 6:
+		seq := [6]byte{bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]}
+		if code, found := ctrlInsertLookup[seq]; found {
 			keyCode = code
-			return
-		} else {
-			ascii = int(bytes[0])
 			return
 		}
 	default:
-		// For other cases, set ascii to the first byte
-		ascii = int(bytes[0])
+		// Attempt to decode as UTF-8
+		r, _ := utf8.DecodeRune(bytes[:numRead])
+		if unicode.IsPrint(r) {
+			ascii = int(r)
+		}
 	}
 
 	return
@@ -188,34 +185,34 @@ func (tty *TTY) String() string {
 		return ""
 	}
 
-	switch numRead {
-	case 1:
+	switch {
+	case numRead == 1:
 		r := rune(bytes[0])
 		if unicode.IsPrint(r) {
 			return string(r)
 		}
 		return "c:" + strconv.Itoa(int(r))
-	case 3:
-		if str, found := keyStringLookup[[3]byte{bytes[0], bytes[1], bytes[2]}]; found {
+	case numRead == 3:
+		seq := [3]byte{bytes[0], bytes[1], bytes[2]}
+		if str, found := keyStringLookup[seq]; found {
 			return str
-		} else {
-			// If not found, attempt to interpret as UTF-8 string
-			return string(bytes[:numRead])
 		}
-	case 4:
-		if str, found := pageStringLookup[[4]byte{bytes[0], bytes[1], bytes[2], bytes[3]}]; found {
+		// Attempt to interpret as UTF-8 string
+		return string(bytes[:numRead])
+	case numRead == 4:
+		seq := [4]byte{bytes[0], bytes[1], bytes[2], bytes[3]}
+		if str, found := pageStringLookup[seq]; found {
 			return str
-		} else {
-			return string(bytes[:numRead])
 		}
-	case 6:
-		if str, found := ctrlInsertStringLookup[[6]byte{bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]}]; found {
+		return string(bytes[:numRead])
+	case numRead == 6:
+		seq := [6]byte{bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]}
+		if str, found := ctrlInsertStringLookup[seq]; found {
 			return str
-		} else {
-			return string(bytes[:numRead])
 		}
+		return string(bytes[:numRead])
 	default:
-		// For other cases, attempt to interpret as UTF-8 string
+		// Attempt to interpret as UTF-8 string
 		return string(bytes[:numRead])
 	}
 }
@@ -238,33 +235,33 @@ func (tty *TTY) Rune() rune {
 		return rune(0)
 	}
 
-	switch numRead {
-	case 1:
+	switch {
+	case numRead == 1:
 		return rune(bytes[0])
-	case 3:
-		if str, found := keyStringLookup[[3]byte{bytes[0], bytes[1], bytes[2]}]; found {
+	case numRead == 3:
+		seq := [3]byte{bytes[0], bytes[1], bytes[2]}
+		if str, found := keyStringLookup[seq]; found {
 			return []rune(str)[0]
-		} else {
-			// If not found, attempt to interpret as UTF-8 rune
-			r, _ := utf8.DecodeRune(bytes[:numRead])
-			return r
 		}
-	case 4:
-		if str, found := pageStringLookup[[4]byte{bytes[0], bytes[1], bytes[2], bytes[3]}]; found {
+		// Attempt to interpret as UTF-8 rune
+		r, _ := utf8.DecodeRune(bytes[:numRead])
+		return r
+	case numRead == 4:
+		seq := [4]byte{bytes[0], bytes[1], bytes[2], bytes[3]}
+		if str, found := pageStringLookup[seq]; found {
 			return []rune(str)[0]
-		} else {
-			r, _ := utf8.DecodeRune(bytes[:numRead])
-			return r
 		}
-	case 6:
-		if str, found := ctrlInsertStringLookup[[6]byte{bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]}]; found {
+		r, _ := utf8.DecodeRune(bytes[:numRead])
+		return r
+	case numRead == 6:
+		seq := [6]byte{bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5]}
+		if str, found := ctrlInsertStringLookup[seq]; found {
 			return []rune(str)[0]
-		} else {
-			r, _ := utf8.DecodeRune(bytes[:numRead])
-			return r
 		}
+		r, _ := utf8.DecodeRune(bytes[:numRead])
+		return r
 	default:
-		// For other cases, attempt to interpret as UTF-8 rune
+		// Attempt to interpret as UTF-8 rune
 		r, _ := utf8.DecodeRune(bytes[:numRead])
 		return r
 	}
@@ -326,4 +323,72 @@ func (tty *TTY) PrintRawBytes() {
 		return
 	}
 	fmt.Printf("Raw bytes: %v\n", bytes[:numRead])
+}
+
+// Term will return the underlying term.Term
+func (tty *TTY) Term() *term.Term {
+	return tty.t
+}
+
+// asciiAndKeyCodeOnce reads a single key press and returns the ASCII code and key code
+func asciiAndKeyCodeOnce() (ascii, keyCode int, err error) {
+	t, err := NewTTY()
+	if err != nil {
+		return 0, 0, err
+	}
+	a, kc, err := asciiAndKeyCode(t)
+	t.Close()
+	return a, kc, err
+}
+
+// ASCII returns the ASCII code of the key pressed
+func (tty *TTY) ASCII() int {
+	ascii, _, err := asciiAndKeyCode(tty)
+	if err != nil {
+		return 0
+	}
+	return ascii
+}
+
+// ASCIIOnce returns the ASCII code of a single key press
+func ASCIIOnce() int {
+	ascii, _, err := asciiAndKeyCodeOnce()
+	if err != nil {
+		return 0
+	}
+	return ascii
+}
+
+// KeyCode returns the key code of the key pressed
+func (tty *TTY) KeyCode() int {
+	_, keyCode, err := asciiAndKeyCode(tty)
+	if err != nil {
+		return 0
+	}
+	return keyCode
+}
+
+// KeyCodeOnce returns the key code of a single key press
+func KeyCodeOnce() int {
+	_, keyCode, err := asciiAndKeyCodeOnce()
+	if err != nil {
+		return 0
+	}
+	return keyCode
+}
+
+// WaitForKey waits for Return, Esc, Space, or 'q' to be pressed
+func WaitForKey() {
+	// Get a new TTY and start reading keypresses in a loop
+	r, err := NewTTY()
+	if err != nil {
+		panic(err)
+	}
+	defer r.Close()
+	for {
+		switch r.Key() {
+		case 13, 27, 32, 113:
+			return
+		}
+	}
 }
