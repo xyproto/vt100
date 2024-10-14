@@ -260,6 +260,7 @@ func WaitForKey() {
 // String will block and then return a string
 // Arrow keys are returned as ←, →, ↑ or ↓
 // returns an empty string if the pressed key could not be interpreted
+// Returns a longer string if text was ie. middle click pasted in.
 func (tty *TTY) String() string {
 	bytes := make([]byte, 3)
 	tty.RawMode()
@@ -271,35 +272,46 @@ func (tty *TTY) String() string {
 	}
 	tty.Restore()
 	tty.t.Flush()
-	if numRead == 3 && bytes[0] == 27 && bytes[1] == 91 {
-		// Three-character control sequence, beginning with "ESC-[".
-
-		// Since there are no ASCII codes for arrow keys, we use
-		// the last 4 values of a byte
-		if bytes[2] == 65 {
-			// Up
-			return "↑"
-		} else if bytes[2] == 66 {
-			// Down
-			return "↓"
-		} else if bytes[2] == 67 {
-			// Right
-			return "→"
-		} else if bytes[2] == 68 {
-			// Left
-			return "←"
-		}
-	} else if numRead == 1 {
+	switch numRead {
+	case 0:
+		return ""
+	case 1:
 		r := rune(bytes[0])
 		if unicode.IsPrint(r) {
 			return string(r)
 		}
 		return "c:" + strconv.Itoa(int(r))
-	} else {
-		// Two or more bytes, a unicode character (or mashing several keys)
-		return string([]rune(string(bytes))[0])
+	case 3:
+		if bytes[0] == 27 && bytes[1] == 91 {
+			// Three-character control sequence, beginning with "ESC-[".
+			// Since there are no ASCII codes for arrow keys, we use
+			// the last 4 values of a byte
+			if bytes[2] == 65 {
+				// Up
+				return "↑"
+			} else if bytes[2] == 66 {
+				// Down
+				return "↓"
+			} else if bytes[2] == 67 {
+				// Right
+				return "→"
+			} else if bytes[2] == 68 {
+				// Left
+				return "←"
+			}
+		}
+	case 4:
+		if bytes[2] == 53 && bytes[3] == 126 {
+			// Page Up
+			return "⇞"
+		} else if numRead == 4 && bytes[2] == 54 && bytes[3] == 126 {
+			// Page Down
+			return "⇟"
+		}
 	}
-	return ""
+	// Two or >4 bytes, a unicode character (or mashing several keys)
+	// TODO: Return middle-click pasted text instead of just one letter?
+	return string(bytes)
 }
 
 // Rune will block and then return a rune.
