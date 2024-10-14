@@ -76,34 +76,38 @@ func asciiAndKeyCode(tty *TTY) (ascii, keyCode int, err error) {
 	if err != nil {
 		return
 	}
-	if numRead >= 3 && bytes[0] == 27 && bytes[1] == 91 {
-		// Three-character control sequence, beginning with "ESC-[".
-
-		// Since there are no ASCII codes for arrow keys, we use
-		// Javascript key codes.
-		if bytes[2] == 65 {
-			// Up
-			keyCode = 38
-		} else if bytes[2] == 66 {
-			// Down
-			keyCode = 40
-		} else if bytes[2] == 67 {
-			// Right
-			keyCode = 39
-		} else if bytes[2] == 68 {
-			// Left
-			keyCode = 37
-		} else if numRead == 4 && bytes[2] == 53 && bytes[3] == 126 {
+	switch numRead {
+	case 1:
+		ascii = int(bytes[0])
+	case 2:
+		// ?
+	case 3:
+		if bytes[0] == 27 && bytes[1] == 91 {
+			// Three-character control sequence, beginning with "ESC-[".
+			// Since there are no ASCII codes for arrow keys, we use
+			// Javascript key codes.
+			if bytes[2] == 65 {
+				// Up
+				keyCode = 38
+			} else if bytes[2] == 66 {
+				// Down
+				keyCode = 40
+			} else if bytes[2] == 67 {
+				// Right
+				keyCode = 39
+			} else if bytes[2] == 68 {
+				// Left
+				keyCode = 37
+			}
+		}
+	case 4:
+		if bytes[2] == 53 && bytes[3] == 126 {
 			// Page Up
 			keyCode = 33
 		} else if numRead == 4 && bytes[2] == 54 && bytes[3] == 126 {
 			// Page Down
 			keyCode = 34
 		}
-	} else if numRead == 1 {
-		ascii = int(bytes[0])
-		//} else {
-		// TWo characters read??
 	}
 	return
 }
@@ -121,34 +125,39 @@ func asciiAndKeyCodeNoJavascript(tty *TTY) (ascii, keyCode int, err error) {
 	if err != nil {
 		return
 	}
-	if numRead >= 3 && bytes[0] == 27 && bytes[1] == 91 {
-		// Three-character control sequence, beginning with "ESC-[".
+	switch numRead {
+	case 1:
+		ascii = int(bytes[0])
+	case 2:
+		// ?
+	case 3:
+		if bytes[0] == 27 && bytes[1] == 91 {
+			// Three-character control sequence, beginning with "ESC-[".
 
-		// Since there are no ASCII codes for arrow keys, we use
-		// the last 4 values of a byte
-		if bytes[2] == 65 {
-			// Up
-			keyCode = 253
-		} else if bytes[2] == 66 {
-			// Down
-			keyCode = 255
-		} else if bytes[2] == 67 {
-			// Right
-			keyCode = 254
-		} else if bytes[2] == 68 {
-			// Left
-			keyCode = 252
-		} else if numRead == 4 && bytes[2] == 53 && bytes[3] == 126 {
+			// Since there are no ASCII codes for arrow keys, we use
+			// the last 4 values of a byte
+			if bytes[2] == 65 {
+				// Up
+				keyCode = 253
+			} else if bytes[2] == 66 {
+				// Down
+				keyCode = 255
+			} else if bytes[2] == 67 {
+				// Right
+				keyCode = 254
+			} else if bytes[2] == 68 {
+				// Left
+				keyCode = 252
+			}
+		}
+	case 4:
+		if bytes[2] == 53 && bytes[3] == 126 {
 			// Page Up
 			keyCode = 251 // Custom keyCode for Page Up
-		} else if numRead == 4 && bytes[2] == 54 && bytes[3] == 126 {
+		} else if bytes[2] == 54 && bytes[3] == 126 {
 			// Page Down
 			keyCode = 250 // Custom keyCode for Page Down
 		}
-	} else if numRead == 1 {
-		ascii = int(bytes[0])
-		//} else {
-		// Two characters read??
 	}
 	return
 }
