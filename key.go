@@ -65,7 +65,7 @@ func (tty *TTY) Close() {
 // Thanks https://stackoverflow.com/a/32018700/131264
 // Returns either an ascii code, or (if input is an arrow) a Javascript key code.
 func asciiAndKeyCode(tty *TTY) (ascii, keyCode int, err error) {
-	bytes := make([]byte, 3)
+	bytes := make([]byte, 4)
 	var numRead int
 	tty.RawMode()
 	tty.NoBlock()
@@ -76,7 +76,7 @@ func asciiAndKeyCode(tty *TTY) (ascii, keyCode int, err error) {
 	if err != nil {
 		return
 	}
-	if numRead == 3 && bytes[0] == 27 && bytes[1] == 91 {
+	if numRead >= 3 && bytes[0] == 27 && bytes[1] == 91 {
 		// Three-character control sequence, beginning with "ESC-[".
 
 		// Since there are no ASCII codes for arrow keys, we use
@@ -93,6 +93,12 @@ func asciiAndKeyCode(tty *TTY) (ascii, keyCode int, err error) {
 		} else if bytes[2] == 68 {
 			// Left
 			keyCode = 37
+		} else if numRead == 4 && bytes[2] == 53 && bytes[3] == 126 {
+			// Page Up
+			keyCode = 33
+		} else if numRead == 4 && bytes[2] == 54 && bytes[3] == 126 {
+			// Page Down
+			keyCode = 34
 		}
 	} else if numRead == 1 {
 		ascii = int(bytes[0])
@@ -104,7 +110,7 @@ func asciiAndKeyCode(tty *TTY) (ascii, keyCode int, err error) {
 
 // Don't use the "JavaScript key codes" for the arrow keys
 func asciiAndKeyCodeNoJavascript(tty *TTY) (ascii, keyCode int, err error) {
-	bytes := make([]byte, 3)
+	bytes := make([]byte, 4)
 	var numRead int
 	tty.RawMode()
 	tty.NoBlock()
@@ -115,7 +121,7 @@ func asciiAndKeyCodeNoJavascript(tty *TTY) (ascii, keyCode int, err error) {
 	if err != nil {
 		return
 	}
-	if numRead == 3 && bytes[0] == 27 && bytes[1] == 91 {
+	if numRead >= 3 && bytes[0] == 27 && bytes[1] == 91 {
 		// Three-character control sequence, beginning with "ESC-[".
 
 		// Since there are no ASCII codes for arrow keys, we use
@@ -132,6 +138,12 @@ func asciiAndKeyCodeNoJavascript(tty *TTY) (ascii, keyCode int, err error) {
 		} else if bytes[2] == 68 {
 			// Left
 			keyCode = 252
+		} else if numRead == 4 && bytes[2] == 53 && bytes[3] == 126 {
+			// Page Up
+			keyCode = 251 // Custom keyCode for Page Up
+		} else if numRead == 4 && bytes[2] == 54 && bytes[3] == 126 {
+			// Page Down
+			keyCode = 250 // Custom keyCode for Page Down
 		}
 	} else if numRead == 1 {
 		ascii = int(bytes[0])

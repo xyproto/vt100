@@ -5,7 +5,7 @@
 * Supports colors and attributes.
 * Supports platforms with VT100 support and a `/dev/tty` device.
 * Can detect the terminal size.
-* Can get key-presses, including arrow keys (252, 253, 254, 255).
+* Can get key-presses, including arrow keys (252, 253, 254, 255) and pgup/pgdn (251, 250).
 * Has a Canvas struct, for drawing only the updated lines to the terminal.
 * Uses the a reference document directly, but memoizes the commands sent to the terminal, for performance.
 * Could be used for making an alternative to the `dialog` or `whiptail` utilities.
@@ -78,6 +78,6 @@ Quick installation:
 
 ### General info
 
-* Version: 1.14.7
+* Version: 1.15.0
 * Licence: BSD-3
 * Author: Alexander F. Rødseth &lt;xyproto@archlinux.org&gt;
