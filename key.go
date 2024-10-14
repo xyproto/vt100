@@ -247,7 +247,6 @@ func WaitForKey() {
 		r.Close()
 		panic(err)
 	}
-	//r.SetTimeout(10 * time.Millisecond)
 	for {
 		switch r.Key() {
 		case 13, 27, 32, 113:
@@ -262,7 +261,7 @@ func WaitForKey() {
 // returns an empty string if the pressed key could not be interpreted
 // Returns a longer string if text was ie. middle click pasted in.
 func (tty *TTY) String() string {
-	bytes := make([]byte, 3)
+	bytes := make([]byte, 4)
 	tty.RawMode()
 	//tty.NoBlock()
 	tty.SetTimeout(0)
