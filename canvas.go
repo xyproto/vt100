@@ -255,6 +255,13 @@ func (c *Canvas) SetRunewise(b bool) {
 	c.runewise = b
 }
 
+// DrawAndSetCursor draws the entire canvas and then places the cursor at x,y
+func (c *Canvas) DrawAndSetCursor(x, y uint) {
+	c.Draw()
+	// Reposition the cursor
+	SetXY(x, y)
+}
+
 // Draw the entire canvas
 func (c *Canvas) Draw() {
 
