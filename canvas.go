@@ -226,7 +226,6 @@ func (c *Canvas) SetShowCursor(enable bool) {
 	c.mut.Lock()
 	defer c.mut.Unlock()
 	c.cursorVisible = enable
-	ShowCursor(enable)
 }
 
 func (c *Canvas) W() uint {
