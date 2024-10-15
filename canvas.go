@@ -513,6 +513,15 @@ func (c *Canvas) Redraw() {
 	c.Draw()
 }
 
+func (c *Canvas) HideCursorAndRedraw() {
+	c.mut.Lock()
+	for _, cr := range c.chars {
+		cr.drawn = false
+	}
+	c.mut.Unlock()
+	c.HideCursorAndDraw()
+}
+
 // At returns the rune at the given coordinates, or an error if out of bounds
 func (c *Canvas) At(x, y uint) (rune, error) {
 	c.mut.RLock()
