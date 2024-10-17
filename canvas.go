@@ -43,13 +43,8 @@ type canvasCopy struct {
 
 func NewCanvas() *Canvas {
 	c := &Canvas{}
-	var err error
-	c.w, c.h, err = TermSize()
-	if err != nil {
-		// Use 80x25 if the size can't be detected
-		c.w = 80
-		c.h = 25
-	}
+	c.w = TermWidth()
+	c.h = TermHeight()
 	c.chars = make([]ColorRune, c.w*c.h)
 	for i := 0; i < len(c.chars); i++ {
 		c.chars[i].fg = Default
@@ -677,10 +672,8 @@ func (c *Canvas) WriteRunesB(x, y uint, fg, bgb AttributeColor, r rune, count ui
 }
 
 func (c *Canvas) Resize() {
-	w, h, err := TermSize()
-	if err != nil {
-		return
-	}
+	w := TermWidth()
+	h := TermHeight()
 	c.mut.Lock()
 	if (w != c.w) || (h != c.h) {
 		// Resize to the new size
@@ -695,11 +688,8 @@ func (c *Canvas) Resize() {
 // Check if the canvas was resized, and adjust values accordingly.
 // Returns a new canvas, or nil.
 func (c *Canvas) Resized() *Canvas {
-	w, h, err := TermSize()
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
+	w := TermWidth()
+	h := TermHeight()
 	if (w != c.w) || (h != c.h) {
 		// The terminal was resized!
 		oldc := c
