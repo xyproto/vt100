@@ -71,11 +71,11 @@ See `cmd/move` for a more advanced example, where a character can be moved aroun
 
 ### A small editor using `vt100`
 
-The [Orbiton editor](https://github.com/xyproto/orbiton) that uses `vt100` can be used for editing Go, Bash or for example C++ code.
+The [Orbiton editor](https://github.com/xyproto/orbiton) uses `vt100`:
 
 Quick installation:
 
-    go install github.com/xyproto/o/v2@latest
+    go install github.com/xyproto/orbiton/v2@latest
 
 ### General info
 
