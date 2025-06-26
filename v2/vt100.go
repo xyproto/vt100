@@ -240,12 +240,10 @@ func Clear() {
 	fmt.Print(eraseScreen)
 }
 
-func NoColor() string {
-	return "\033[0m"
-}
+const NoColor string = "\033[0m"
 
 func SetNoColor() {
-	fmt.Print(NoColor())
+	fmt.Print(NoColor)
 }
 
 func Init() {
@@ -366,12 +364,12 @@ func (ac AttributeColor) String() string {
 
 // Get the full string needed for outputting colored texti, with the text and stopping the color attribute
 func (ac AttributeColor) StartStop(text string) string {
-	return ac.String() + text + NoColor()
+	return ac.String() + text + NoColor
 }
 
 // An alias for StartStop
 func (ac AttributeColor) Get(text string) string {
-	return ac.String() + text + NoColor()
+	return ac.String() + text + NoColor
 }
 
 // Get the full string needed for outputting colored text, with the text, but don't reset the attributes at the end of the string
@@ -381,7 +379,7 @@ func (ac AttributeColor) Start(text string) string {
 
 // Get the text and the terminal codes for resetting the attributes
 func (ac AttributeColor) Stop(text string) string {
-	return text + NoColor()
+	return text + NoColor
 }
 
 var maybeNoColor *string
@@ -391,7 +389,7 @@ func Stop() string {
 	if maybeNoColor != nil {
 		return *maybeNoColor
 	}
-	s := NoColor()
+	s := NoColor
 	maybeNoColor = &s
 	return s
 }
@@ -536,7 +534,7 @@ func (c *Canvas) PlotAll() {
 				//continue
 			}
 			SetXY(uint(x), y)
-			fmt.Print(cr.fg.Combine(cr.bg).String() + string(r) + NoColor())
+			fmt.Print(cr.fg.Combine(cr.bg).String() + string(r) + NoColor)
 		}
 	}
 	c.mut.Unlock()
