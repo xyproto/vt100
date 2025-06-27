@@ -10,10 +10,6 @@
 * Uses the a reference document directly, but memoizes the commands sent to the terminal, for performance.
 * Could be used for making an alternative to the `dialog` or `whiptail` utilities.
 
-### Editor
-
-For an editor that uses this module, take a look at [orbiton](https://github.com/xyproto/orbiton).
-
 ### Images
 
 ![shooter example](img/shooter.gif)
