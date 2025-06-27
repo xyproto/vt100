@@ -69,14 +69,6 @@ The full overview of possible commands are at the top of `vt100.go`.
 
 See `cmd/move` for a more advanced example, where a character can be moved around with the arrow keys.
 
-### A small editor using `vt100`
-
-The [Orbiton editor](https://github.com/xyproto/orbiton) uses `vt100`:
-
-Quick installation:
-
-    go install github.com/xyproto/orbiton/v2@latest
-
 ### General info
 
 * Version: 1.20.0
